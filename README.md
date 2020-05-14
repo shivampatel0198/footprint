@@ -2,82 +2,97 @@
 CSCI 339 Final Project
 
 ## Introduction
-We describe a peer-to-peer privacy-preserving location-based exposure notification (read: digital contact tracing) system.
-To preserve privacy, we hash location data and use a system of rotating node-IDs.
-The system notifies users every 6-12 hours of any potential exposure events.
-
-### Challenges
-The primary challenges of building this system are using location data in a privacy-preserving manner, and monitoring the distance between moving nodes without local communication. 
+Many of the more prominent digital contact-tracing protocols (like DP3T) use local communication between devices via Bluetooth.  We seek to build a protocol that uses location information instead in a privacy-preserving manner.
+We do this by hashing location data and using a system of rotating time-sensitive node IDs.
 
 ## Overview
-Our system consists of two phases: (1) planting and (2) triggering.  
-The planting phase updates a global hash table that will later be used to track exposure events in the triggering phase.  
-The system runs continuously, taking snapshots of user position every so often (we use the constant `STEP` to denote the time between snapshots). 
-We define two other constants:
-`EXPOS_THRESH` is the minimum exposure time that triggers an exposure notification, 
-and `K` is the distance threshold for infection transmission.
+Our system takes location snapshots at fixed intervals.  (We use the constant `STEP` to denote the time between snapshots.) Our input data stream, then, is a collection of (x,y) coordinates for each node. 
 
-We partition the network domain into a matrix of disjoint square cells, where each cell has side length `K`. 
-We refer to each cell `c` via a pair of coordinates `name(c) = (x,y)` where `x` is the latitude and `y` the longitude of `c`'s top left corner.
+We partition the network domain into a matrix of disjoint square cells, where each cell has side length `DIST_THRESH`. We refer to each cell `C` by the pair of coordinates `name(C) = (x,y)` where `x` is the latitude and `y` the longitude of `C`'s top left corner.
 
-We use a distributed hashtable (DHT) to store hashed location information.  
-Each entry in the table consists of a key-value pair `<k,v>` 
-where `k = hash("(x,y)")` for a consistent hashing function `hash` and some reals x,y, 
-and `v` is a list of `(id, interval(a,b))` pairs.
+We use a distributed hashtable (DHT) to securely store global location information.
+The DHT maps from cells to lists of (ID, interval) pairs. 
+Nodes update the DHT with their locally logged location information in batches.
+When a patient tests positive, their logged information is compared to information in the DHT to determine which other nodes were exposed to the patient while they were potentially contagious. 
+If exposure exceeds `EXPOS_THRESH`, then a notification is triggered.
 
-### Planting
-The planting phase is performed in batches every `STEP/2` time steps.
-Whenever a node `n` moves to a new cell `c` at time `t`, we record the event by locally logging the time and all of the 8-neighbors of cell `c` (i.e., any cell that shares a corner vertex with `c`) via `log`.
+## Core Functionality
+Our system consists of a few core functions: `log()`, `push()`, `broadcast()`, and `receive()`.
+
+### `log()`
+This function updates a node's internal location log. 
+The internal log is structured as a hashtable mapping from cells to lists of intervals.
+(Note: We store the node's most recent location to skip logging when the node is not moving.)
 
 ```
-func log(node, c, t):
-  let cells = map(closed-neighborhood(node), c => name(c))
+func log(node, cell, t):
+  if cell == node.prevCell:
+    node.hasNotMoved = true
+    return
+
+  // Track the cells around cell that are close enough to the node
+  // to constitute transmission events
+  let cells = get-neighbors(cell) 
 
   for cell in cells:
-    add interval(t) to node.log[cell], merging to existing intervals if possible
+    add interval(t) to node.log[cell], merging into existing intervals if possible,
+    taking node.hasNotMoved into account
 ```
 
-Later, in batches, nodes "plant" triggers by updating the DHT via `plant`.
+### `push()`
+This function sends logged data to the DHT.
 
 ```
-func plant(node):
-  for cell, intervals in node.log:
+func push(node):
+  for (cell, interval) in node.log:
     if cell not in DHT:
       initialize DHT[cell]
-    add (id(node.seed), interval) pairs to DHT[cell]
+
+    let id = id(node.seed)
+    add (id, interval) to DHT[cell]
+    add id to node.sent // Keep track of all emitted IDs
 ```
 
-(TODO: Use caching to store the node IP that stores the `cell` key to avoid having to repeatedly search for the same cell.  Use an interval tree for DHT[cell]?)
+(TODO: Use caching to store the node IP that stores the `cell` key to avoid having to repeatedly search for the same cell.  Consider using an interval tree for DHT[cell].)
 
-We assume the existence of a function `id(seed)`, which generates a new pseudorandom number using `seed` every time
-it is called.
-
-### Triggering
-The triggering phase is performed in batches every `STEP/2` time steps for each node using its stored data.
-
+The function `id(node)` generates a time-sensitive pseudorandom number using the node's private seed:
 ```
-func trigger(node):
-  for cell, interval_1 in node.log:
-    let seen = all (id, interval_2) pairs for all intervals in DHT[cell] that overlap interval_1
-    for (id, interval_2) in seen:
-      node.seen[id] += len(intersect(interval_1, interval_2))
-```
-(How can we make the interval checking faster?  Using an interval tree?)
-
-When an infection is diagnosed, the IDs emitted by the patient are broadcast through the network.
-All nodes receive the broadcast and check whether they have seen the IDs, and if they have, for how long.
-If they have seen them for more than `EXPOS_THRESH` time steps, then we alert the user.
-
-```
-func receive-broadcast(node, broadcast-list):
-  let sum = 0
-  for id in broadcast-list:
-    sum += node.seen.get(id, default=0)
-    if sum > EXPOS_THRESH:
-      alert user of exposure
+func id(node):
+  return hash(node.seed + currentTime)
 ```
 
-Nodes remove all local records after 30 days.
+### `broadcast()`
+This function is called when a patient tests positive to notify nodes who have had contact events with the patient's node.
+
+```
+func broadcast(infected-node):
+
+  // Collect the nodes that have had contact events with the infected node
+  contact-events = []
+  for (cell, interval) in infected-node.log:
+    for (id, interval') in DHT[cell] where interval' overlaps interval:
+      add (id, overlap(interval, interval')) to contact-events
+
+  // Propagate affected node IDs through network
+  propagate(neighbors(infected-node), contact-events, propagate)
+```
+(Note: Be careful to avoid flooding the network with repeated messages.)
+
+### `receive()`
+When nodes receive a `(id, overlap)` broadcast, they respond by checking whether they emitted an ID
+matching `id` and adjusting their exposure count accordingly.  If total exposure exceeds `EXPOS_THRESH`, the node notifies the user.
+
+```
+func receive(node, id, overlap):
+
+  if id is in node.sent:
+    node.exposure += overlap
+
+  if exposure > EXPOS_THRESH:
+    alert user of exposure
+```
+
+Nodes remove all local records after 2 weeks.
 
 ## Comparison to other techniques
 
