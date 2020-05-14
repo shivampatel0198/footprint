@@ -1,4 +1,4 @@
-# Peer-to-peer Privacy-Preserving Asynchronous Range Queries
+# Peer-to-Peer Privacy-Preserving Location-Based Proximity Tracing
 CSCI 339 Final Project
 
 ## Introduction
