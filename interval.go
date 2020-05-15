@@ -10,6 +10,9 @@ type Interval struct {
 }
 
 func (i Interval) String() string {
+	if (i.Start == i.End) {
+		return fmt.Sprintf("interval[%d]", i.Start)
+	}
 	return fmt.Sprintf("interval[%d, %d]", i.Start, i.End)
 }
 
