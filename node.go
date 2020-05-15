@@ -45,13 +45,6 @@ func (n Node) Log(cell Point, t Time) {
 	}
 }
 
-// func push(node):
-//   for (cell, interval) in node.log:
-//     if cell not in DHT:
-//       initialize DHT[cell]
-//     let id = id(node.seed)
-//     add (id, interval) to DHT[cell]
-//     add id to node.ids // Keep track of all emitted IDs
 func (n Node) Push() {
 	for cell, intervals := range n.log {
 
