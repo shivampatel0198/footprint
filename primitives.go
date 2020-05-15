@@ -13,12 +13,11 @@ type Point struct {
 }
 
 func (p Point) ClosedNeighborhood() (out []Point) {
-	// for dx := -1; dx <= 1; dx++ {
-	// 	for dy := -1; dy <= 1; dy++ {
-	// 		out = append(out, Point{p.X+dx, p.Y+dy})
-	// 	}
-	// }
-	out = []Point{p}
+	for dx := -1; dx <= 1; dx++ {
+		for dy := -1; dy <= 1; dy++ {
+			out = append(out, Point{p.X+dx, p.Y+dy})
+		}
+	}
 	return
 }
 
