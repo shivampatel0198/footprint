@@ -21,6 +21,9 @@ type VisitLog interface {
 	// Add a Visit to the VisitLog
 	Add(v Visit) VisitLog
 
+	// Checks whether a Visit is in the VisitLog
+	Contains(v Visit) bool
+
 	// Find visitors that overlap with i, return how long each overlaps
 	Intersect(i Interval) map[string]Time
 
@@ -35,6 +38,15 @@ type VisitLogList struct {
 
 func (vl VisitLogList) Add(v Visit) VisitLog {
 	return VisitLogList{append(vl.visits, v)}
+}
+
+func (vl VisitLogList) Contains(v Visit) bool {
+	for _, visit := range vl.visits {
+		if visit == v {
+			return true
+		}
+	}
+	return false
 }
 
 func (vl VisitLogList) Intersect(i Interval) (out map[string]Time) {

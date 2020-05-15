@@ -5,6 +5,9 @@ import (
 )
 
 func equal(xs,ys []Interval) bool {
+	if len(xs) != len(ys) {
+		return false
+	}
 	for i, x := range xs {
 		if x != ys[i] {
 			return false
@@ -14,7 +17,7 @@ func equal(xs,ys []Interval) bool {
 }
 
 func TestLog(t *testing.T) {
-	node := NewNode("test")
+	node := NewNode("testLog")
 
 	// Logging interval-points
 	visited := []Point{
@@ -39,4 +42,31 @@ func TestLog(t *testing.T) {
 			t.Errorf("Failed at Log(): %v != %v", intervals, node.log[p])
 		}
 	}
+}
+
+func TestPush(t *testing.T) {
+	node := NewNode("testPush")
+
+	// Visit some points
+	cells := []Point{
+		Point{0,0},
+		Point{0,1},
+		Point{0,2},
+		Point{0,3},
+		Point{0,4},
+	}
+	for i, cell := range cells {
+		node.Log(cell, i)
+	}
+	
+	node.Push()
+	
+	// Check initial push
+	for i, cell := range cells {
+		_, ok := DHT[cell]
+		if !ok {
+			t.Errorf("Failed at Push(): (cell=%v, time=%v) was missing", cell, i)
+		}
+	}
+
 }

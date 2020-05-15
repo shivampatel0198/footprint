@@ -2,14 +2,14 @@ package main
 
 import "fmt"
 
-//Constants
-var TIME_STEP = 1
-var EXPOS_THRESH = 3
-var DIST_THRESH = 2
+const (
+	TIME_STEP int = 1
+	EXPOS_THRESH int = 3
+	DIST_THRESH int = 2
+)
 
 type Point struct {
-	X int
-	Y int
+	X, Y int
 }
 
 func (p Point) ClosedNeighborhood() (out []Point) {
@@ -25,7 +25,6 @@ func (p Point) String() string {
 	return fmt.Sprintf("(%v,%v)", p.X, p.Y)
 }
 
-// Allow for substitution of different datatypes (float64, time.Time)
 type Time = int
 
 func max(a, b Time) Time {
