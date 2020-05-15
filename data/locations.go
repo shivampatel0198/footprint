@@ -74,7 +74,7 @@ func main() {
 			for j:= i+1; j<len(nodes[0]); j++ {
 				if Distance(nodes[t][i], nodes[t][j]) < 2 {
 					fmt.Printf("Nodes %d, %d are close at time %d: %s-%s\n", 
-						i, j, t, nodes[t][i], nodes[t][j)]
+						i, j, t, nodes[t][i], nodes[t][j])
 				}
 			}
 		}
