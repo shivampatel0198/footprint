@@ -27,7 +27,7 @@ func (p Point) String() string {
 
 type Time = int
 
-func max(a, b Time) Time {
+func Max(a, b Time) Time {
 	if a > b { 
 		return a
 	} else { 
@@ -35,7 +35,7 @@ func max(a, b Time) Time {
 	}
 }
 
-func min(a, b Time) Time {
+func Min(a, b Time) Time {
 	if a < b {
 		return a
 	} else {

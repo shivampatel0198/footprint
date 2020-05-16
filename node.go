@@ -7,7 +7,7 @@ import (
 	"crypto/sha256"
 )
 
-var DHT = make(map[Point]VisitLog)
+var DHT = make(map[Point]VisitLogList)
 
 type Node struct {
 	key string                    // Private key used to generate tempIds
