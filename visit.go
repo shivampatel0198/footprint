@@ -33,6 +33,14 @@ func (vl VisitLogList) Contains(v Visit) bool {
 	return false
 }
 
+func (vl VisitLogList) Last() Visit {
+	return vl.visits[len(vl.visits)-1]
+}
+
+func (vl VisitLogList) Size() int {
+	return len(vl.visits)
+}
+
 func (v VisitLogList) Intersect(u VisitLogList) (out VisitLogList) {
 	out = VisitLogList{}
 	var xs, ys []Visit
@@ -56,11 +64,13 @@ func (v VisitLogList) Intersect(u VisitLogList) (out VisitLogList) {
 
 func (vl VisitLogList) String() string {
 	var s strings.Builder
+	s.WriteString("Log:[\n\t")
 	s.WriteString(vl.visits[0].String())
 	for _, visit := range vl.visits[1:] {
-		s.WriteString("\n")
+		s.WriteString("\n\t")
 		s.WriteString(visit.String())
 	}
+	s.WriteString("]")
 	return s.String()
 }
 

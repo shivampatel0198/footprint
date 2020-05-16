@@ -37,6 +37,16 @@ func TestIntersect(t *testing.T) {
 	}
 }
 
+func TestExtend(t *testing.T) {
+	vl := VisitLogList{}
+	vl.Add(Visit{"a", Interval{0,5}})
+	vl.Add(Visit{"b", Interval{0,10}})
+	vl.Add(Visit{"c", Interval{5,10}})
+	
+	
+	
+}
+
 func equals(u, v VisitLogList) bool {
 	for i := range u.visits {
 		if u.visits[i] != v.visits[i] {
