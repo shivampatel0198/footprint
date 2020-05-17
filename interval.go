@@ -4,11 +4,14 @@ import (
 	"fmt"
 )
 
+// Represents an interval of time
+// Points are represented as intervals where Lo==Hi
 type Interval struct {
 	Lo Time
 	Hi Time
 }
 
+// Return a string representation of an interval
 func (i Interval) String() string {
 	if (i.Lo == i.Hi) {
 		return fmt.Sprintf("interval[%d]", i.Lo)
