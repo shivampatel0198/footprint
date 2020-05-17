@@ -41,19 +41,14 @@ func (i Interval) Intersect(j Interval) (result Interval, ok bool) {
 	return
 }
 
-//////////////////////////////
-// Implement atree.Interval //
-//////////////////////////////
-
-func (i Interval) LowAtDimension(d uint64) int64 {
-	return int64(i.Lo)
+// Uniquely encode Hi, Lo as a single natural number
+// Note: Not perfect b/c of finite encoding, but will work for now
+func cantor_pairing(a,b int) uint64 {
+	x, y := float64(a), float64(b)
+	return uint64(0.5 * (x+y) * (x+y+1) + y)
 }
 
-func (i Interval) HighAtDimension(d uint64) int64 {
-	return int64(i.Hi)
-}
-
-func (i Interval) OverlapsAtDimension(o Interval, d uint64) bool {
-	_, ok := i.Intersect(o)
-	return ok
+// Note: Two intervals are equivalent if their endpoints are equivalent
+func (i Interval) ID() uint64 {
+	return cantor_pairing(i.Lo, i.Hi)
 }

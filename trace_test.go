@@ -40,3 +40,30 @@ func TestLocalTraceAdd(t *testing.T) {
 		}
 	}
 }
+
+func TestIntersectIntervalLists(t *testing.T) {
+	xs := []Interval{ 
+		Interval{0,1},
+		Interval{2,2},
+		Interval{3,5},
+	}
+	ys := []Interval{
+		Interval{0,3},
+		Interval{1,2},
+		Interval{2,2},
+		Interval{5,7},
+	}
+	expected := []Interval {
+		Interval{0,1},
+		Interval{1,1},
+		Interval{2,2},
+		Interval{3,3},
+		Interval{5,5},
+	}
+	results := Intersect(xs, ys)
+	for _, x := range expected {
+		if !results[x] {
+			t.Errorf("expected=%v actual=%v", expected, results)
+		}
+	}
+}
