@@ -1,5 +1,7 @@
 package main
 
+import "strings"
+
 // Type aliases
 type PointCode string
 
@@ -8,6 +10,10 @@ type PointCode string
 type LocalTrace struct {
 	data map[PointCode][]Interval
 } 
+
+func (trace *LocalTrace) String() string {
+	return String(trace.data)
+}
 
 // Create a new LocalTrace
 func NewLocalTrace() *LocalTrace {
@@ -66,12 +72,18 @@ func NewGlobalTrace() *GlobalTrace {
 	return trace
 }
 
+func (g *GlobalTrace) String() string {
+	return String(g.data)
+}
+
 // Add a collection of intervals to a cell
 func (trace *GlobalTrace) Add(cell PointCode, intervals []Interval) {
 	for _, interval := range intervals {
 		trace.data[cell] = append(trace.data[cell], interval)
 	}
 }
+
+/* Utilities */
 
 // Returns the set of intersections between two lists of intervals
 func Intersect(xs,ys []Interval) (overlaps map[Interval]bool) {
@@ -85,4 +97,19 @@ func Intersect(xs,ys []Interval) (overlaps map[Interval]bool) {
 		}
 	}
 	return
+}
+
+func String(data map[PointCode][]Interval) string {
+	var b strings.Builder
+	b.WriteString("Trace:")
+	for c, intervals := range data {
+		b.WriteString("\n  ")
+		b.WriteString(string(c))
+		b.WriteString(": ")
+		for _, interval := range intervals {
+			b.WriteString("\n    ")
+			b.WriteString(interval.String())
+		}
+	}
+	return b.String()
 }

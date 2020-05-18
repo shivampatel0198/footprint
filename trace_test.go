@@ -89,7 +89,7 @@ func TestLocalTraceIntersectGlobal(t *testing.T) {
 	u.Iterate(func(c PointCode, xs []Interval) {
 		global.Add(c,xs)
 	})
-	
+
 	// Intersect global with v
 	overlap := v.Intersect(global)
 	

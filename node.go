@@ -20,7 +20,7 @@ func NewNode(bulletin *GlobalTrace) (n *Node) {
 }
 
 func (n Node) String() string {
-	return fmt.Sprintf("Local Trace:\n%v", n.trace)
+	return fmt.Sprintf("Trace:\n%v\nBulletin:%v", n.trace, &n.bulletin)
 }
 
 func TempId(key string) string {
