@@ -67,7 +67,7 @@ func NewGlobalTrace() *GlobalTrace {
 }
 
 // Add a collection of intervals to a cell
-func (trace GlobalTrace) Add(cell PointCode, intervals []Interval) {
+func (trace *GlobalTrace) Add(cell PointCode, intervals []Interval) {
 	for _, interval := range intervals {
 		trace.data[cell] = append(trace.data[cell], interval)
 	}

@@ -67,15 +67,15 @@ func TestLocalTraceIntersectGlobal(t *testing.T) {
 	u, v := NewLocalTrace(), NewLocalTrace()
 	xs := []PointCode{
 		"loc1",
-		"loc2",
+		"loc1",
+		"loc1",
 		"loc5",
-		"loc6",
 	}
 	ys := []PointCode{
 		"loc1",
+		"loc1",
 		"loc3",
 		"loc5",
-		"loc7",
 	}
 	for t, x := range xs {
 		u.Add(x, t)
@@ -95,10 +95,10 @@ func TestLocalTraceIntersectGlobal(t *testing.T) {
 	
 	expected := map[PointCode][]Interval {
 		"loc1" : []Interval{
-			Interval{0,0},
+			Interval{0,1},
 		},
 		"loc5" : []Interval{
-			Interval{2,2},
+			Interval{3,3},
 		},
 	}
 

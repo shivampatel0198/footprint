@@ -7,15 +7,15 @@ import (
 	"crypto/sha256"
 )
 
-var bulletin = NewGlobalTrace()
-
 type Node struct {
 	trace *LocalTrace
+	bulletin *GlobalTrace
 }
 
-func NewNode(key string) (n *Node) {
+func NewNode(bulletin *GlobalTrace) (n *Node) {
 	n = new(Node)
 	n.trace = NewLocalTrace()
+	n.bulletin = bulletin
 	return
 }
 
@@ -45,7 +45,7 @@ func (n Node) Log(cell Point, t Time) {
 // After testing positive, send local location information to the global store
 func (n Node) Push() {
 	n.trace.Iterate(func(c PointCode, xs []Interval) {
-		bulletin.Add(c, xs)
+		n.bulletin.Add(c, xs)
 	})
 }
 
@@ -59,6 +59,6 @@ func (n Node) Push() {
 func (n Node) Check() map[PointCode][]Interval {
 	// (1) Pull needed cells from distributed hashtable
 	// (2) Compute intersections
-	return n.trace.Intersect(bulletin)
+	return n.trace.Intersect(n.bulletin)
 }
 

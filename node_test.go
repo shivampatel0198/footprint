@@ -6,7 +6,8 @@ import (
 
 // TODO: test w/ multiple nodes
 func TestLog(t *testing.T) {
-	node := NewNode("testLog")
+	g := NewGlobalTrace()
+	node := NewNode(g)
 	locs := []Point{
 		Point{0,0}, 
 		Point{0,10}, 
@@ -40,7 +41,8 @@ func TestLog(t *testing.T) {
 }
 
 func TestPush(t *testing.T) {
-	node := NewNode("testPush")
+	g := NewGlobalTrace()
+	node := NewNode(g)
 
 	ps := []Point{
 		Point{0,0}, 
@@ -56,10 +58,50 @@ func TestPush(t *testing.T) {
 	node.Push()
 	
 	for i, p := range ps {
-		_, ok := bulletin.data[Encode(p)]
+		_, ok := g.data[Encode(p)]
 		if !ok {
 			t.Errorf("(cell=%v, time=%v) was missing", p, i)
 		}
+	}
+}
+
+func TestCheck(t *testing.T) {
+	g := NewGlobalTrace()
+
+	// Setup infected node
+	infected := NewNode(g)
+	xs := []Point{
+		Point{0,0},
+		Point{0,1},
+		Point{0,2},
+		Point{0,2},
+		Point{0,2},
+		Point{0,3},
+	}
+	for t, x := range xs {
+		infected.Log(x,t)
+	}
+	infected.Push()
+
+	// Setup test node
+	node := NewNode(g)
+	ys := []Point{
+		Point{0,2},
+		Point{0,2},
+		Point{0,2},
+		Point{0,2},
+	}
+	for t, y := range ys {
+		node.Log(y,t)
+	}
+	
+	contacts := node.Check()
+	expected :=  []Interval {
+		Interval{2,3},
+	}
+	code := Encode(Point{0,2})
+	if !Equal(contacts[code], expected) {
+		t.Errorf("expected=%v, actual=%v", expected, contacts[code])
 	}
 }
 
