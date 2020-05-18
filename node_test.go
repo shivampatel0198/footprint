@@ -33,29 +33,17 @@ func TestLog(t *testing.T) {
 		},
 	}
 	for p, intervals := range expected {
-		if !contains(node.log[p], intervals) {
-			t.Errorf("Failed at Log(): %v does not contain %v", node.log[p], intervals)
+		if !Equal(node.trace.data[Encode(p)], intervals) {
+			t.Errorf("expected=%v, actual=%v", intervals, node.trace.data[Encode(p)])
 		}
 	}
-}
-
-// Check whether vl contains all input intervals
-func contains(vl VisitLogList, intervals []Interval) bool {
-	for _, v := range vl.visits {
-		for _, interval := range intervals {
-			if v.Duration == interval {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func TestPush(t *testing.T) {
 	node := NewNode("testPush")
 
-	// Setup
 	ps := []Point{
+		Point{0,0}, 
 		Point{0,0}, 
 		Point{0,1}, 
 		Point{0,2}, 
@@ -68,9 +56,9 @@ func TestPush(t *testing.T) {
 	node.Push()
 	
 	for i, p := range ps {
-		_, ok := DHT[p]
+		_, ok := bulletin.data[Encode(p)]
 		if !ok {
-			t.Errorf("Failed at Push(): (cell=%v, time=%v) was missing", p, i)
+			t.Errorf("(cell=%v, time=%v) was missing", p, i)
 		}
 	}
 }

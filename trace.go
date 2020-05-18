@@ -1,9 +1,5 @@
 package main
 
-import (
-	
-)
-
 // Type aliases
 type PointCode string
 
@@ -26,8 +22,11 @@ func (trace *LocalTrace) Add(cell PointCode, t Time) {
 
 	// If the last recorded location was in the same place, extend the last interval.
 	// Otherwise, append a point interval to the trace.
-	if ok && t - intervals[len(intervals)-1].Size() == TIME_STEP {
-		trace.data[cell] = append(intervals[:len(intervals)-1], intervals[len(intervals)-1].Extend(t))
+	if ok && t - intervals[len(intervals)-1].Hi == TIME_STEP {
+		trace.data[cell] = append(
+			intervals[:len(intervals)-1], 
+			intervals[len(intervals)-1].Extend(t),
+		)
 	} else {
 		trace.data[cell] = append(intervals, Interval{t, t})
 	}
@@ -40,6 +39,21 @@ func (trace *LocalTrace) Iterate(f func(cell PointCode, intervals []Interval)) {
 	}
 }
 
+// Find all of the intersections between a global trace and a local trace
+func (local *LocalTrace) Intersect(global *GlobalTrace) (overlap map[PointCode][]Interval) {
+	overlap = make(map[PointCode][]Interval)
+	local.Iterate(func(c PointCode, xs []Interval) {
+		ys, ok := global.data[c]
+		if ok {
+			set := Intersect(xs, ys)
+			for x := range set {
+				overlap[c] = append(overlap[c], x)
+			}
+		}
+	})
+	return
+}
+
 // Records the visit history for all nodes in the network.
 // The record of visits for a given location is a collection of potentially overlapping intervals.
 type GlobalTrace struct {
@@ -50,6 +64,13 @@ func NewGlobalTrace() *GlobalTrace {
 	trace := new(GlobalTrace)
 	trace.data = make(map[PointCode][]Interval)
 	return trace
+}
+
+// Add a collection of intervals to a cell
+func (trace GlobalTrace) Add(cell PointCode, intervals []Interval) {
+	for _, interval := range intervals {
+		trace.data[cell] = append(trace.data[cell], interval)
+	}
 }
 
 // Returns the set of intersections between two lists of intervals

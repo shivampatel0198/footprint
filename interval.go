@@ -52,3 +52,15 @@ func cantor_pairing(a,b int) uint64 {
 func (i Interval) ID() uint64 {
 	return cantor_pairing(i.Lo, i.Hi)
 }
+
+func Equal(xs, ys []Interval) bool {
+	if len(xs) != len(ys) {
+		return false
+	}
+	for i, x := range xs {
+		if x != ys[i] {
+			return false
+		}
+	}
+	return true
+}

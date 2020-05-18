@@ -4,19 +4,12 @@ import (
 	"testing"
 )
 
-func equal(xs, ys []Interval) bool {
-	for i := range xs {
-		if xs[i] != ys[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func TestLocalTraceAdd(t *testing.T) {
 	trace := NewLocalTrace()
 	codes := []PointCode {
 		"loc1",
+		"loc2",
+		"loc2",
 		"loc2",
 		"loc3",
 	}
@@ -28,14 +21,14 @@ func TestLocalTraceAdd(t *testing.T) {
 			Interval{0,0},
 		},
 		"loc2" : []Interval{
-			Interval{1,1},
+			Interval{1,3},
 		},
 		"loc3" : []Interval{
-			Interval{2,2},
+			Interval{4,4},
 		},
 	}
 	for _, code := range codes {
-		if !equal(trace.data[code], expected[code]) {
+		if !Equal(trace.data[code], expected[code]) {
 			t.Errorf("expected=%v actual=%v", expected[code], trace.data[code])
 		}
 	}
@@ -66,4 +59,53 @@ func TestIntersectIntervalLists(t *testing.T) {
 			t.Errorf("expected=%v actual=%v", expected, results)
 		}
 	}
+}
+
+func TestLocalTraceIntersectGlobal(t *testing.T) {
+
+	// Setup two local traces u,v
+	u, v := NewLocalTrace(), NewLocalTrace()
+	xs := []PointCode{
+		"loc1",
+		"loc2",
+		"loc5",
+		"loc6",
+	}
+	ys := []PointCode{
+		"loc1",
+		"loc3",
+		"loc5",
+		"loc7",
+	}
+	for t, x := range xs {
+		u.Add(x, t)
+	}
+	for t, y := range ys {
+		v.Add(y, t)
+	}
+
+	// Add u's traces to global
+	global := NewGlobalTrace()
+	u.Iterate(func(c PointCode, xs []Interval) {
+		global.Add(c,xs)
+	})
+	
+	// Intersect global with v
+	overlap := v.Intersect(global)
+	
+	expected := map[PointCode][]Interval {
+		"loc1" : []Interval{
+			Interval{0,0},
+		},
+		"loc5" : []Interval{
+			Interval{2,2},
+		},
+	}
+
+	for code, interval := range overlap {
+		if !equal(interval, expected[code]) {
+			t.Errorf("expected=%v, actual=%v", expected, overlap)
+		}
+	}
+
 }
