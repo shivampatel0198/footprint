@@ -49,7 +49,7 @@ func (trace *LocalTrace) Iterate(f func(cell PointCode, intervals []Interval)) {
 func (local *LocalTrace) Intersect(global *GlobalTrace) (overlap map[PointCode][]Interval) {
 	overlap = make(map[PointCode][]Interval)
 	local.Iterate(func(c PointCode, xs []Interval) {
-		ys, ok := global.data[c]
+		ys, ok := global.Read(c)
 		if ok {
 			set := Intersect(xs, ys)
 			for x := range set {
@@ -62,6 +62,7 @@ func (local *LocalTrace) Intersect(global *GlobalTrace) (overlap map[PointCode][
 
 // Records the visit history for all nodes in the network.
 // The record of visits for a given location is a collection of potentially overlapping intervals.
+// TODO: thread safety
 type GlobalTrace struct {
 	data map[PointCode][]Interval
 }
@@ -74,6 +75,12 @@ func NewGlobalTrace() *GlobalTrace {
 
 func (g *GlobalTrace) String() string {
 	return String(g.data)
+}
+
+// NOTE: Rep exposure via mutability
+func (g *GlobalTrace) Read(cell PointCode) (xs []Interval, ok bool) {
+	xs, ok = g.data[cell]
+	return
 }
 
 // Add a collection of intervals to a cell

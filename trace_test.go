@@ -107,5 +107,4 @@ func TestLocalTraceIntersectGlobal(t *testing.T) {
 			t.Errorf("expected=%v, actual=%v", expected, overlap)
 		}
 	}
-
 }

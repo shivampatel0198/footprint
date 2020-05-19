@@ -4,33 +4,36 @@ import (
 	"testing"
 )
 
-// TODO: test w/ multiple nodes
 func TestLog(t *testing.T) {
 	g := NewGlobalTrace()
 	node := NewNode(g)
-	locs := []Point{
+	locs := []Point {
 		Point{0,0}, 
-		Point{0,10}, 
-		Point{10,10},
-		Point{10,10},
-		Point{10,10},
-		Point{0,10}, 
+		Point{0,1}, 
+		Point{1,0},
+		Point{1,1},
+		Point{1,1},
+		Point{0,1}, 
+		Point{0,0}, 
 		Point{0,0}, 
 	}
-	for i, loc := range locs {
-		node.Log(loc, i)
+	for t, loc := range locs {
+		node.Log(loc, t)
 	}
 	expected := map[Point][]Interval {
 		Point{0,0}: []Interval{
 			Interval{0,0}, 
-			Interval{6,6},
+			Interval{6,7},
 		},
-		Point{0,10}: []Interval{
+		Point{0,1}: []Interval{
 			Interval{1,1}, 
 			Interval{5,5},
 		},
-		Point{10,10}: []Interval{
-			Interval{2,4},
+		Point{1,0}: []Interval{
+			Interval{2,2}, 
+		},
+		Point{1,1}: []Interval{
+			Interval{3,4},
 		},
 	}
 	for p, intervals := range expected {

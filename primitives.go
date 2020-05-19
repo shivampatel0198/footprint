@@ -42,5 +42,3 @@ func Min(a, b Time) Time {
 		return b
 	}
 }
-
-func main() {}
