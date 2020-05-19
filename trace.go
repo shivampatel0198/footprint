@@ -1,6 +1,9 @@
 package main
 
-import "strings"
+import (
+	"strings"
+	"sync"
+)
 
 // Type aliases
 type PointCode string
@@ -9,7 +12,7 @@ type PointCode string
 // The record of visits for a given location is a collection of non-overlapping intervals.
 type LocalTrace struct {
 	data map[PointCode][]Interval
-} 
+}
 
 func (trace *LocalTrace) String() string {
 	return String(trace.data)
@@ -28,9 +31,9 @@ func (trace *LocalTrace) Add(cell PointCode, t Time) {
 
 	// If the last recorded location was in the same place, extend the last interval.
 	// Otherwise, append a point interval to the trace.
-	if ok && t - intervals[len(intervals)-1].Hi == TIME_STEP {
+	if ok && t-intervals[len(intervals)-1].Hi == TIME_STEP {
 		trace.data[cell] = append(
-			intervals[:len(intervals)-1], 
+			intervals[:len(intervals)-1],
 			intervals[len(intervals)-1].Extend(t),
 		)
 	} else {
@@ -62,9 +65,9 @@ func (local *LocalTrace) Intersect(global *GlobalTrace) (overlap map[PointCode][
 
 // Records the visit history for all nodes in the network.
 // The record of visits for a given location is a collection of potentially overlapping intervals.
-// TODO: thread safety
 type GlobalTrace struct {
 	data map[PointCode][]Interval
+	mux  sync.Mutex
 }
 
 func NewGlobalTrace() *GlobalTrace {
@@ -84,16 +87,18 @@ func (g *GlobalTrace) Read(cell PointCode) (xs []Interval, ok bool) {
 }
 
 // Add a collection of intervals to a cell
-func (trace *GlobalTrace) Add(cell PointCode, intervals []Interval) {
+func (g *GlobalTrace) Add(cell PointCode, intervals []Interval) {
+	g.mux.Lock()
 	for _, interval := range intervals {
-		trace.data[cell] = append(trace.data[cell], interval)
+		g.data[cell] = append(g.data[cell], interval)
 	}
+	g.mux.Unlock()
 }
 
 /* Utilities */
 
 // Returns the set of intersections between two lists of intervals
-func Intersect(xs,ys []Interval) (overlaps map[Interval]bool) {
+func Intersect(xs, ys []Interval) (overlaps map[Interval]bool) {
 	overlaps = make(map[Interval]bool)
 	for _, x := range xs {
 		for _, y := range ys {
@@ -108,7 +113,7 @@ func Intersect(xs,ys []Interval) (overlaps map[Interval]bool) {
 
 func String(data map[PointCode][]Interval) string {
 	var b strings.Builder
-	b.WriteString("Trace:")
+	b.WriteString("[")
 	for c, intervals := range data {
 		b.WriteString("\n  ")
 		b.WriteString(string(c))
@@ -118,5 +123,6 @@ func String(data map[PointCode][]Interval) string {
 			b.WriteString(interval.String())
 		}
 	}
+	b.WriteString("]")
 	return b.String()
 }

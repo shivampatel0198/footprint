@@ -3,9 +3,9 @@ package main
 import "fmt"
 
 const (
-	TIME_STEP int = 1
+	TIME_STEP    int = 1
 	EXPOS_THRESH int = 3
-	DIST_THRESH int = 2
+	DIST_THRESH  int = 2
 )
 
 type Point struct {
@@ -15,7 +15,7 @@ type Point struct {
 func (p Point) ClosedNeighborhood() (out []Point) {
 	for dx := -1; dx <= 1; dx++ {
 		for dy := -1; dy <= 1; dy++ {
-			out = append(out, Point{p.X+dx, p.Y+dy})
+			out = append(out, Point{p.X + dx, p.Y + dy})
 		}
 	}
 	return
@@ -28,10 +28,10 @@ func (p Point) String() string {
 type Time = int
 
 func Max(a, b Time) Time {
-	if a > b { 
+	if a > b {
 		return a
-	} else { 
-		return b	
+	} else {
+		return b
 	}
 }
 

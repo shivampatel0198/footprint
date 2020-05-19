@@ -3,17 +3,17 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"log"
-	"strconv"
-	"math/rand"
 	"encoding/json"
+	"fmt"
+	"log"
+	"math/rand"
+	"os"
+	"strconv"
 )
 
 func random(min, max int) int {
 	sign := rand.Intn(2)*2 - 1
-	return sign * (min + rand.Intn(max - min + 1))
+	return sign * (min + rand.Intn(max-min+1))
 }
 
 func randomStep(p Point, min, max int) Point {
@@ -38,8 +38,8 @@ func main() {
 		return
 	}
 
-	arg := func(i int) (out int) { 
-		out, _ = strconv.Atoi(os.Args[i]) 
+	arg := func(i int) (out int) {
+		out, _ = strconv.Atoi(os.Args[i])
 		return
 	}
 
@@ -47,16 +47,16 @@ func main() {
 	max := arg(2)
 	nodeCount := arg(3)
 	iters := arg(4)
-	
+
 	ps := make([][]Point, iters)
 
 	// Randomly seed points
 	for i := 0; i < nodeCount; i++ {
-		ps[0] = make([]Point, nodeCount) 
-		ps[0][i] = Point{random(0,5), random(0,5)}
+		ps[0] = make([]Point, nodeCount)
+		ps[0][i] = Point{random(0, 5), random(0, 5)}
 	}
 	// Perform random walk
-	for i := 1; i<iters; i++ {
+	for i := 1; i < iters; i++ {
 		ps[i] = make([]Point, nodeCount)
 		for j := range ps[i] {
 			ps[i][j] = randomStep(ps[i-1][j], min, max)

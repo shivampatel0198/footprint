@@ -6,11 +6,11 @@ import (
 
 func TestIntervalSize(t *testing.T) {
 	tests := []Interval{
-		Interval{0,0},
-		Interval{0,1},
-		Interval{1,2},
+		Interval{0, 0},
+		Interval{0, 1},
+		Interval{1, 2},
 	}
-	expected := []Time {
+	expected := []Time{
 		0, 1, 1,
 	}
 	for i, interval := range tests {
@@ -21,20 +21,20 @@ func TestIntervalSize(t *testing.T) {
 }
 
 func TestIntervalExtend(t *testing.T) {
-	tests := []Interval {
-		Interval{0,0},
-		Interval{5,10},
-		Interval{0,10},
-		Interval{5,10},
+	tests := []Interval{
+		Interval{0, 0},
+		Interval{5, 10},
+		Interval{0, 10},
+		Interval{5, 10},
 	}
-	his := []Time {
+	his := []Time{
 		10, 20, 5, 5,
 	}
-	expected := []Interval {
-		Interval{0,10},
-		Interval{5,20},
-		Interval{0,10},
-		Interval{5,10},
+	expected := []Interval{
+		Interval{0, 10},
+		Interval{5, 20},
+		Interval{0, 10},
+		Interval{5, 10},
 	}
 	for i, interval := range tests {
 		result := interval.Extend(his[i])
@@ -50,7 +50,7 @@ type pair struct {
 }
 
 func TestIntervalIntersect(t *testing.T) {
-	tests := []pair {
+	tests := []pair{
 		pair{
 			Interval{1, 4},
 			Interval{2, 3},
@@ -72,14 +72,14 @@ func TestIntervalIntersect(t *testing.T) {
 			Interval{3, 4},
 		},
 	}
-	oks := []bool {
+	oks := []bool{
 		true, true, true, true, false,
 	}
-	expected := []Interval {
-		Interval{2,3},
-		Interval{2,3},
-		Interval{2,2},
-		Interval{2,2},
+	expected := []Interval{
+		Interval{2, 3},
+		Interval{2, 3},
+		Interval{2, 2},
+		Interval{2, 2},
 		Interval{},
 	}
 

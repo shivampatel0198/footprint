@@ -6,7 +6,7 @@ import (
 
 func TestLocalTraceAdd(t *testing.T) {
 	trace := NewLocalTrace()
-	codes := []PointCode {
+	codes := []PointCode{
 		"loc1",
 		"loc2",
 		"loc2",
@@ -16,15 +16,15 @@ func TestLocalTraceAdd(t *testing.T) {
 	for t, code := range codes {
 		trace.Add(code, t)
 	}
-	expected := map[PointCode][]Interval {
-		"loc1" : []Interval{
-			Interval{0,0},
+	expected := map[PointCode][]Interval{
+		"loc1": []Interval{
+			Interval{0, 0},
 		},
-		"loc2" : []Interval{
-			Interval{1,3},
+		"loc2": []Interval{
+			Interval{1, 3},
 		},
-		"loc3" : []Interval{
-			Interval{4,4},
+		"loc3": []Interval{
+			Interval{4, 4},
 		},
 	}
 	for _, code := range codes {
@@ -35,23 +35,23 @@ func TestLocalTraceAdd(t *testing.T) {
 }
 
 func TestIntersectIntervalLists(t *testing.T) {
-	xs := []Interval{ 
-		Interval{0,1},
-		Interval{2,2},
-		Interval{3,5},
+	xs := []Interval{
+		Interval{0, 1},
+		Interval{2, 2},
+		Interval{3, 5},
 	}
 	ys := []Interval{
-		Interval{0,3},
-		Interval{1,2},
-		Interval{2,2},
-		Interval{5,7},
+		Interval{0, 3},
+		Interval{1, 2},
+		Interval{2, 2},
+		Interval{5, 7},
 	}
-	expected := []Interval {
-		Interval{0,1},
-		Interval{1,1},
-		Interval{2,2},
-		Interval{3,3},
-		Interval{5,5},
+	expected := []Interval{
+		Interval{0, 1},
+		Interval{1, 1},
+		Interval{2, 2},
+		Interval{3, 3},
+		Interval{5, 5},
 	}
 	results := Intersect(xs, ys)
 	for _, x := range expected {
@@ -87,18 +87,18 @@ func TestLocalTraceIntersectGlobal(t *testing.T) {
 	// Add u's traces to global
 	global := NewGlobalTrace()
 	u.Iterate(func(c PointCode, xs []Interval) {
-		global.Add(c,xs)
+		global.Add(c, xs)
 	})
 
 	// Intersect global with v
 	overlap := v.Intersect(global)
-	
-	expected := map[PointCode][]Interval {
-		"loc1" : []Interval{
-			Interval{0,1},
+
+	expected := map[PointCode][]Interval{
+		"loc1": []Interval{
+			Interval{0, 1},
 		},
-		"loc5" : []Interval{
-			Interval{3,3},
+		"loc5": []Interval{
+			Interval{3, 3},
 		},
 	}
 
