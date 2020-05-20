@@ -61,7 +61,6 @@ func (n *Node) Log(cell Point, t Time) {
 
 func (n *Node) MarkInfected() {
 	n.Infected = true
-	n.Push()
 }
 
 // After testing positive, send local location information to the global store
@@ -77,16 +76,12 @@ Determine contact events with infected individuals.
 Looks at bulletin, looks at n's logged activity, and finds all of the intersections.
 Using those intersections, determine whether n is now infected/at risk.  
 */
-func (n *Node) Check() {
+func (n *Node) Check(pred func(overlaps map[PointCode][]Interval) bool) {
+	// Ignore already infected nodes
 	if n.Infected {
 		return
 	}
-	overlaps := n.log.Intersect(n.bulletin)
-
-	// Simple infection model: 
-	// if a node n ever comes into contact with an infected node,
-	// the disease immediately spreads to n
-	if len(overlaps) > 0 {
+	if pred(n.log.Intersect(n.bulletin)) {
 		n.MarkInfected()
 	}
 }

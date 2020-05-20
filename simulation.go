@@ -8,15 +8,26 @@ import (
 	"strconv"
 )
 
-var node_count = 50
-var iters = 100
+var (
+	node_count  int
+	node_spread int
+	iters       int
+)
 
 func simulate(n *Node, i int, record *[][]NodeRecord) {
 	for t := 0; t < iters; t++ {
 		pos := n.Locate()
 		n.Log(pos, t)
-		n.Check()
-		(*record)[t][i] = NodeRecord{n.Id, pos, n.Infected}
+		if n.Infected {
+			n.Push()
+		} else {
+			// Simple infection model: one-touch transmission
+			n.Check(func(overlaps map[PointCode][]Interval) bool {
+				return len(overlaps) > 0
+			})
+		}
+		r := NodeRecord{n.Id, pos, n.Infected}
+		(*record)[t][i] = r
 	}
 }
 
@@ -47,11 +58,12 @@ func main() {
 	}
 
 	// Interpret command line args
-	if len(os.Args) == 3 {
-		node_count = arg(2)
-		iters = arg(1)
+	if len(os.Args) == 4 {
+		node_count = arg(1)
+		node_spread = arg(2)
+		iters = arg(3)
 	} else {
-		fmt.Println("Usage: simulation [node-count] [iterations]")
+		fmt.Println("Usage: simulation [node-count] [node-spread] [iterations]")
 		return
 	}
 
@@ -76,10 +88,11 @@ func main() {
 		record[t][0] = NodeRecord{"infected", pos, true}
 	}
 	nodes[0].MarkInfected()
+	nodes[0].Push()
 
 	// Setup and run other nodes
 	for i := 1; i < node_count; i++ {
-		nodes[i] = NewNode("node "+strconv.Itoa(i), NewRandomWalk(RandomPoint(0, 10)), g)
+		nodes[i] = NewNode("node "+strconv.Itoa(i), NewRandomWalk(RandomPoint(0, node_spread)), g)
 		simulate(nodes[i], i, &record)
 	}
 

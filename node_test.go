@@ -88,6 +88,7 @@ func TestCheck(t *testing.T) {
 		infected.Log(x, t)
 	}
 	infected.MarkInfected()
+	infected.Push()
 
 	// Setup test node
 	node := NewNode("healthy", walk, g)
@@ -100,7 +101,10 @@ func TestCheck(t *testing.T) {
 	for t, y := range ys {
 		node.Log(y, t)
 	}
-	node.Check()
+	// Simple one-contact infection model
+	node.Check(func(overlaps map[PointCode][]Interval) bool {
+		return len(overlaps) > 0
+	})
 	if !node.Infected {
 		t.Error("node not infected")
 	}
