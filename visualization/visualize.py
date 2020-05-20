@@ -14,6 +14,8 @@ not_infected_color = 'black'
 
 # (0) Set up figure
 fig = plt.figure()
+fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
+plt.autoscale(enable=True, tight=True)
 
 # (1) Read JSON data into a map
 with open('data.json') as file:
@@ -31,7 +33,6 @@ for timestep in range(len(data)):
         for node in range(len(data[timestep]))
     ])
 
-    plt.axis('off')
     x, y, c = coords.T
     frames.append([plt.scatter(x=x,y=y,c=c)])
 
