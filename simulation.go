@@ -21,10 +21,20 @@ func simulate(n *Node, i int, record *[][]NodeRecord) {
 		if n.Infected {
 			n.Push()
 		} else {
-			// Simple infection model: one-touch transmission
 			n.Check(func(overlaps map[PointCode][]Interval) bool {
-				return len(overlaps) > 0
+				count := 0
+				for _, intervals := range overlaps {
+					for _, interval := range intervals {
+						count += interval.Size()
+					}
+				} 
+				return count > 1
 			})
+
+			// // Simple infection model: one-touch transmission
+			// n.Check(func(overlaps map[PointCode][]Interval) bool {
+			// 	return len(overlaps) > 0
+			// })
 		}
 		r := NodeRecord{n.Id, pos, n.Infected}
 		(*record)[t][i] = r
@@ -82,7 +92,8 @@ func main() {
 			infected = append(infected, n.Id)
 		}
 	}
-
+	fmt.Println(infected)
+	
 	// Write JSON
 	b, _ := json.Marshal(record)
 	fmt.Println(string(b))

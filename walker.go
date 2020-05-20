@@ -2,10 +2,6 @@
 
 package main
 
-import (
-	"math/rand"
-)
-
 type Walker interface {
 	// Moves to another location (or stays in place)
 	Walk()
@@ -41,23 +37,9 @@ func NewRandomWalk(start Point) *RandomWalk {
 	return rw
 }
 
-func random(min, max int) int {
-	sign := rand.Intn(2)*2 - 1
-	return sign * (min + rand.Intn(max-min+1))
-}
-
-func RandomPoint(min, max int) Point {
-	return Point{random(min, max), random(min, max)}
-}
-
 // Take a random step: x,y in [-1, 1]
-func randomStep(p Point) Point {
-	dx, dy := random(0, 1), random(0, 1)
-	return Point{p.X + dx, p.Y + dy}
-}
-
 func (rw *RandomWalk) Walk() {
-	rw.pos = randomStep(rw.pos)
+	rw.pos = rw.pos.Add(RandomPoint(0, 1))
 }
 
 func (rw *RandomWalk) Where() Point {
@@ -84,14 +66,14 @@ func NewCannedWalk(ps []Point) (cw *CannedWalk) {
 }
 
 func (cw *CannedWalk) Walk() {
-	if cw.index >= len(cw.data) {
-		cw.index = len(cw.data)
-		cw.dx = -1
-	} else if cw.index < 0 {
-		cw.index = -1
-		cw.dx = 1
-	}
 	cw.index += cw.dx
+	if cw.index >= len(cw.data)-1 {
+		cw.index = len(cw.data)-1
+		cw.dx = -1
+	} else if cw.index <= 0 {
+		cw.index = 0
+		cw.dx = 1
+	} 
 }
 
 func (cw *CannedWalk) Where() Point {
@@ -120,8 +102,8 @@ func NewSegmentedWalk(start Point) *SegmentedWalk {
 }
 
 func (sw *SegmentedWalk) reroll() {
-	sw.distance = int(rand.ExpFloat64()) + 1
-	sw.direction = Point{random(0, 1), random(0, 1)}
+	sw.distance = RandomExp() + 1
+	sw.direction = Point{Random(-1, 1), Random(-1, 1)}
 }
 
 func (sw *SegmentedWalk) Walk() {
