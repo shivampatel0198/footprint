@@ -36,20 +36,6 @@ type NodeRecord struct {
 	Infected bool
 }
 
-<<<<<<< HEAD
-=======
-func WriteToFile(s string) {
-	f, err := os.OpenFile("data.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Println(err)
-	}
-	defer f.Close()
-	if _, err := f.WriteString(s); err != nil {
-		log.Println(err)
-	}
-}
-
->>>>>>> b03bbdca8cd1dd8e224ce2e7f3c09d4dcf3f4859
 // Run the simulation
 func main() {
 
