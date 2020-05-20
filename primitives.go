@@ -16,6 +16,10 @@ func (p Point) Copy() Point {
 	return Point{p.X, p.Y}
 }
 
+func (p Point) Add(u Point) Point {
+	return Point{p.X + u.X, p.Y + u.Y}
+}
+
 func (p Point) ClosedNeighborhood() (out []Point) {
 	for dx := -1; dx <= 1; dx++ {
 		for dy := -1; dy <= 1; dy++ {

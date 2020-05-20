@@ -15,6 +15,7 @@ var (
 
 func simulate(n *Node, i int, record *[][]NodeRecord) {
 	for t := 0; t < iters; t++ {
+		n.Walk()
 		pos := n.Locate()
 		n.Log(pos, t)
 		if n.Infected {
@@ -36,15 +37,14 @@ type NodeRecord struct {
 	Infected bool
 }
 
+// Translate args into ints
+func arg(i int) (out int) {
+	out, _ = strconv.Atoi(os.Args[i])
+	return
+}
+
 // Run the simulation
 func main() {
-
-	// Translate args into ints
-	arg := func(i int) (out int) {
-		out, _ = strconv.Atoi(os.Args[i])
-		return
-	}
-
 	// Interpret command line args
 	if len(os.Args) == 4 {
 		node_count = arg(1)
@@ -55,41 +55,35 @@ func main() {
 		return
 	}
 
-	// Setup nodes
-	nodes := make([]*Node, node_count)
-	g := NewGlobalTrace()
-	path := []Point{
-		Point{0, 0},
-	}
-
 	// Setup record
 	record := make([][]NodeRecord, iters)
 	for i := 0; i < iters; i++ {
 		record[i] = make([]NodeRecord, node_count)
 	}
 
-	// Setup infected node
-	nodes[0] = NewNode("infected", NewCannedWalk(path), g)
-	for t := 0; t < iters; t++ {
-		pos := nodes[0].Locate()
-		nodes[0].Log(pos, t)
-		record[t][0] = NodeRecord{"infected", pos, true}
-	}
+	// Setup nodes
+	nodes := make([]*Node, node_count)
+	g := NewGlobalTrace()
+	nodes[0] = NewNode("infected", NewSegmentedWalk(RandomPoint(0, node_spread)), g)
 	nodes[0].MarkInfected()
-	nodes[0].Push()
-
-	// Setup and run other nodes
 	for i := 1; i < node_count; i++ {
-		nodes[i] = NewNode("node "+strconv.Itoa(i), NewRandomWalk(RandomPoint(0, node_spread)), g)
-		simulate(nodes[i], i, &record)
+		nodes[i] = NewNode("node "+strconv.Itoa(i), NewSegmentedWalk(RandomPoint(0, node_spread)), g)
 	}
 
+	// Simulate nodes
+	for i, n := range nodes {
+		simulate(n, i, &record)
+	}
+
+	// Filter out infected nodes
 	infected := make([]string, 0)
 	for _, n := range nodes {
 		if n.Infected {
 			infected = append(infected, n.Id)
 		}
 	}
+
+	// Write JSON
 	b, _ := json.Marshal(record)
 	fmt.Println(string(b))
 }

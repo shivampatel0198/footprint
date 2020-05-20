@@ -7,16 +7,37 @@ import (
 )
 
 type Walker interface {
-	// Returns the next location in a random walk
+	// Moves to another location (or stays in place)
+	Walk()
+
+	// Returns the current location in a random walk
 	Where() Point
 }
 
+type StationaryWalk struct {
+	pos Point
+}
+
+func NewStationaryWalk(start Point) *StationaryWalk {
+	sw := new(StationaryWalk)
+	sw.pos = start
+	return sw
+}
+
+func (sw *StationaryWalk) Walk() {}
+
+func (sw *StationaryWalk) Where() Point {
+	return sw.pos
+}
+
 // Walk randomly on 2D grid
-type RandomWalk Point
+type RandomWalk struct {
+	pos Point
+}
 
 func NewRandomWalk(start Point) *RandomWalk {
 	rw := new(RandomWalk)
-	rw.set(start)
+	rw.pos = start
 	return rw
 }
 
@@ -26,7 +47,7 @@ func random(min, max int) int {
 }
 
 func RandomPoint(min, max int) Point {
-	return Point{random(min,max), random(min,max)}
+	return Point{random(min, max), random(min, max)}
 }
 
 // Take a random step: x,y in [-1, 1]
@@ -35,13 +56,12 @@ func randomStep(p Point) Point {
 	return Point{p.X + dx, p.Y + dy}
 }
 
-func (rw *RandomWalk) set(p Point) {
-	*rw = RandomWalk(p)
+func (rw *RandomWalk) Walk() {
+	rw.pos = randomStep(rw.pos)
 }
 
 func (rw *RandomWalk) Where() Point {
-	defer rw.set(randomStep(Point(*rw)))
-	return Point(*rw)
+	return rw.pos
 }
 
 // Read in data to walk.
@@ -49,6 +69,7 @@ func (rw *RandomWalk) Where() Point {
 type CannedWalk struct {
 	data  []Point
 	index int
+	dx    int
 }
 
 // Reads a canned walk from file.
@@ -58,21 +79,59 @@ func NewCannedWalk(ps []Point) (cw *CannedWalk) {
 	for i := 0; i < len(ps); i++ {
 		cw.data[i] = ps[i].Copy()
 	}
+	cw.dx = 1
 	return
 }
 
-func (cw *CannedWalk) Inc() {
-	cw.index++
+func (cw *CannedWalk) Walk() {
+	if cw.index >= len(cw.data) {
+		cw.index = len(cw.data)
+		cw.dx = -1
+	} else if cw.index < 0 {
+		cw.index = -1
+		cw.dx = 1
+	}
+	cw.index += cw.dx
 }
 
 func (cw *CannedWalk) Where() Point {
-	defer cw.Inc()
+	return cw.data[cw.index]
+}
 
-	i, l, x := 0, len(cw.data), cw.index
-	if x/l%2 == 0 {
-		i = x % l
-	} else {
-		i = l - (x % l) - 1
+// Repeatedly rolls two dice:
+// one to choose walking direction, one to choose walking distance.
+type SegmentedWalk struct {
+
+	// Current position
+	pos Point
+
+	// Store direction as a displacement vector to be added at each time step
+	direction Point
+
+	// Stores remaining distance to walk before re-rolling
+	distance int
+}
+
+func NewSegmentedWalk(start Point) *SegmentedWalk {
+	sw := new(SegmentedWalk)
+	sw.pos = start
+	sw.reroll()
+	return sw
+}
+
+func (sw *SegmentedWalk) reroll() {
+	sw.distance = int(rand.ExpFloat64()) + 1
+	sw.direction = Point{random(0, 1), random(0, 1)}
+}
+
+func (sw *SegmentedWalk) Walk() {
+	if sw.distance == 0 {
+		sw.reroll()
 	}
-	return cw.data[i]
+	sw.pos = sw.pos.Add(sw.direction)
+	sw.distance--
+}
+
+func (sw *SegmentedWalk) Where() Point {
+	return sw.pos
 }

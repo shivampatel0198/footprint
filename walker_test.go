@@ -11,17 +11,13 @@ func TestCannedWalk(t *testing.T) {
 		Point{0, 2},
 	}
 	cw := NewCannedWalk(path)
-
 	expected := []Point{
 		Point{0, 0},
 		Point{0, 1},
 		Point{0, 2},
-		Point{0, 2},
 		Point{0, 1},
 		Point{0, 0},
-		Point{0, 0},
 		Point{0, 1},
-		Point{0, 2},
 		Point{0, 2},
 		Point{0, 1},
 		Point{0, 0},
@@ -29,6 +25,7 @@ func TestCannedWalk(t *testing.T) {
 	actual := make([]Point, len(expected))
 	for i := range expected {
 		actual[i] = cw.Where()
+		cw.Walk()
 	}
 	for i, e := range expected {
 		if actual[i] != e {

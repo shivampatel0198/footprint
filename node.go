@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// For debugging purposes.  In production build, this should be true.
 const ENCODE = false
 
 type Node struct {
@@ -20,10 +21,10 @@ type Node struct {
 func NewNode(id string, w Walker, bulletin *GlobalTrace) (n *Node) {
 	n = new(Node)
 	n.Id = id
+	n.Infected = false
 	n.log = NewLocalTrace()
 	n.bulletin = bulletin
 	n.loc = w
-	n.Infected = false
 	return
 }
 
@@ -47,6 +48,10 @@ func Encode(cell Point) PointCode {
 	} else {
 		return PointCode(cell.String())
 	}
+}
+
+func (n *Node) Walk() {
+	n.loc.Walk()
 }
 
 // Return the node's "current" cell location
