@@ -3,19 +3,21 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
 	"strconv"
 )
 
-const node_count = 50
-const iters = 100
+var node_count = 50
+var iters = 100
 
 func simulate(n *Node, i int, record *[][]NodeRecord) {
 	for t := 0; t < iters; t++ {
 		pos := n.Locate()
 		n.Log(pos, t)
+		n.Check()
 		(*record)[t][i] = NodeRecord{n.Id, pos, n.Infected}
 	}
-	n.Check()
 }
 
 type NodeRecord struct {
@@ -24,14 +26,43 @@ type NodeRecord struct {
 	Infected bool
 }
 
+func WriteToFile(s string) {
+	f, err := os.OpenFile("data.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+	}
+	defer f.Close()
+	if _, err := f.WriteString(s); err != nil {
+		log.Println(err)
+	}
+}
+
 // Run the simulation
 func main() {
+
+	// Translate args into ints
+	arg := func(i int) (out int) {
+		out, _ = strconv.Atoi(os.Args[i])
+		return
+	}
+
+	// Interpret command line args
+	if len(os.Args) == 3 {
+		node_count = arg(2)
+		iters = arg(1)
+	} else {
+		fmt.Println("Usage: simulation [node-count] [iterations]")
+		return
+	}
+
+	// Setup nodes
 	nodes := make([]*Node, node_count)
 	g := NewGlobalTrace()
 	path := []Point{
 		Point{0, 0},
 	}
 
+	// Setup record
 	record := make([][]NodeRecord, iters)
 	for i := 0; i < iters; i++ {
 		record[i] = make([]NodeRecord, node_count)
@@ -52,6 +83,14 @@ func main() {
 		simulate(nodes[i], i, &record)
 	}
 
+	infected := make([]string, 0)
+	for _, n := range nodes {
+		if n.Infected {
+			infected = append(infected, n.Id)
+		}
+	}
+	fmt.Println("Infected nodes:", infected)
+
 	b, _ := json.Marshal(record)
-	fmt.Println(string(b))
+	WriteToFile(string(b))
 }

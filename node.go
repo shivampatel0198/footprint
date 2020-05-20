@@ -78,6 +78,9 @@ Looks at bulletin, looks at n's logged activity, and finds all of the intersecti
 Using those intersections, determine whether n is now infected/at risk.  
 */
 func (n *Node) Check() {
+	if n.Infected {
+		return
+	}
 	overlaps := n.log.Intersect(n.bulletin)
 
 	// Simple infection model: 
