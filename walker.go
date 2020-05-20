@@ -7,11 +7,27 @@ import (
 )
 
 type Walker interface {
+	// Moves to another location (or stays in place)
+	Walk()
+
 	// Returns the current location in a random walk
 	Where() Point
+}
 
-	// Moves to another location (or stays in place)
-	Walk() 
+type StationaryWalk struct {
+	pos Point
+}
+
+func NewStationaryWalk(start Point) *StationaryWalk {
+	sw := new(StationaryWalk)
+	sw.pos = start
+	return sw
+}
+
+func (sw *StationaryWalk) Walk() {}
+
+func (sw *StationaryWalk) Where() Point {
+	return sw.pos
 }
 
 // Walk randomly on 2D grid
@@ -31,7 +47,7 @@ func random(min, max int) int {
 }
 
 func RandomPoint(min, max int) Point {
-	return Point{random(min,max), random(min,max)}
+	return Point{random(min, max), random(min, max)}
 }
 
 // Take a random step: x,y in [-1, 1]
@@ -53,6 +69,7 @@ func (rw *RandomWalk) Where() Point {
 type CannedWalk struct {
 	data  []Point
 	index int
+	dx    int
 }
 
 // Reads a canned walk from file.
@@ -62,19 +79,59 @@ func NewCannedWalk(ps []Point) (cw *CannedWalk) {
 	for i := 0; i < len(ps); i++ {
 		cw.data[i] = ps[i].Copy()
 	}
+	cw.dx = 1
 	return
 }
 
 func (cw *CannedWalk) Walk() {
-	cw.index++
+	if cw.index >= len(cw.data) {
+		cw.index = len(cw.data)
+		cw.dx = -1
+	} else if cw.index < 0 {
+		cw.index = -1
+		cw.dx = 1
+	}
+	cw.index += cw.dx
 }
 
 func (cw *CannedWalk) Where() Point {
-	l := len(cw.data)
-	x := cw.index % (2*l - 2)
-	if x/l == 0 {
-		return cw.data[x]
-	} else {
-		return cw.data[2*(l-1)-x]
+	return cw.data[cw.index]
+}
+
+// Repeatedly rolls two dice:
+// one to choose walking direction, one to choose walking distance.
+type SegmentedWalk struct {
+
+	// Current position
+	pos Point
+
+	// Store direction as a displacement vector to be added at each time step
+	direction Point
+
+	// Stores remaining distance to walk before re-rolling
+	distance int
+}
+
+func NewSegmentedWalk(start Point) *SegmentedWalk {
+	sw := new(SegmentedWalk)
+	sw.pos = start
+	sw.reroll()
+	return sw
+}
+
+func (sw *SegmentedWalk) reroll() {
+	sw.distance = int(rand.ExpFloat64()) + 1
+	sw.direction = Point{random(0, 1), random(0, 1)}
+}
+
+func (sw *SegmentedWalk) Walk() {
+	if sw.distance == 0 {
+		sw.reroll()
 	}
+	sw.pos = sw.pos.Add(sw.direction)
+	sw.distance--
+}
+
+func (sw *SegmentedWalk) Where() Point {
+	return sw.pos
 }

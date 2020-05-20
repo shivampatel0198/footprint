@@ -50,6 +50,10 @@ func Encode(cell Point) PointCode {
 	}
 }
 
+func (n *Node) Walk() {
+	n.loc.Walk()
+}
+
 // Return the node's "current" cell location
 func (n *Node) Locate() Point {
 	return n.loc.Where()
