@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 )
@@ -35,17 +34,6 @@ type NodeRecord struct {
 	NodeID   string
 	Loc      Point
 	Infected bool
-}
-
-func WriteToFile(s string) {
-	f, err := os.OpenFile("data.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Println(err)
-	}
-	defer f.Close()
-	if _, err := f.WriteString(s); err != nil {
-		log.Println(err)
-	}
 }
 
 // Run the simulation
@@ -102,8 +90,6 @@ func main() {
 			infected = append(infected, n.Id)
 		}
 	}
-	fmt.Println("Infected nodes:", infected)
-
 	b, _ := json.Marshal(record)
-	WriteToFile(string(b))
+	fmt.Println(string(b))
 }
