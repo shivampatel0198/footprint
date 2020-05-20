@@ -14,9 +14,19 @@ type Walker interface {
 // Walk randomly on 2D grid
 type RandomWalk Point
 
+func NewRandomWalk(start Point) *RandomWalk {
+	rw := new(RandomWalk)
+	rw.set(start)
+	return rw
+}
+
 func random(min, max int) int {
 	sign := rand.Intn(2)*2 - 1
 	return sign * (min + rand.Intn(max-min+1))
+}
+
+func RandomPoint(min, max int) Point {
+	return Point{random(min,max), random(min,max)}
 }
 
 // Take a random step: x,y in [-1, 1]
@@ -42,10 +52,12 @@ type CannedWalk struct {
 }
 
 // Reads a canned walk from file.
-// Warning: rep exposure b/c ps is not copied
 func NewCannedWalk(ps []Point) (cw *CannedWalk) {
 	cw = new(CannedWalk)
-	cw.data = ps
+	cw.data = make([]Point, len(ps))
+	for i := 0; i < len(ps); i++ {
+		cw.data[i] = ps[i].Copy()
+	}
 	return
 }
 

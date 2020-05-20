@@ -11,6 +11,10 @@ import (
 	"strconv"
 )
 
+type Point struct {
+	X, Y int
+}
+
 func random(min, max int) int {
 	sign := rand.Intn(2)*2 - 1
 	return sign * (min + rand.Intn(max-min+1))

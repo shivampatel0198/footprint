@@ -1,57 +1,57 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	// "time"
 	"strconv"
 )
 
-const node_count = 5
-const run_time = 3
+const node_count = 50
+const iters = 100
 
-func simulate(n *Node, quit chan struct{}) {
-
-	// Move around
-	for t := 0; t < run_time; t++ {
-		n.Log(n.Locate(), t)
+func simulate(n *Node, i int, record *[][]NodeRecord) {
+	for t := 0; t < iters; t++ {
+		pos := n.Locate()
+		n.Log(pos, t)
+		(*record)[t][i] = NodeRecord{n.Id, pos, n.Infected}
 	}
+	n.Check()
+}
 
-	// Periodically check against bulletin
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		case <-quit:
-	// 			return
-	// 		default:
-	// 			time.Sleep(100 * time.Millisecond)
-	// 			overlaps := n.Check()
-	// 			if len(overlaps) > 0 {
-	// 				fmt.Println("Overlap!")
-	// 				fmt.Println(n, overlaps)
-	// 			}
-	// 		}
-	// 	}
-	// }()
+type NodeRecord struct {
+	NodeID   string
+	Loc      Point
+	Infected bool
 }
 
 // Run the simulation
 func main() {
-	ns := make([]*Node, node_count)
+	nodes := make([]*Node, node_count)
 	g := NewGlobalTrace()
-	for i := 0; i < node_count; i++ {
-		ns[i] = NewNode(strconv.Itoa(i), g)
+	path := []Point{
+		Point{0, 0},
 	}
-	for t := 0; t < run_time; t++ {
-		ns[0].Log(ns[0].Locate(), t)
-	}
-	ns[0].Push()
 
-	quit := make(chan struct{})
-	for _, n := range ns {
-		simulate(n, quit)
+	record := make([][]NodeRecord, iters)
+	for i := 0; i < iters; i++ {
+		record[i] = make([]NodeRecord, node_count)
 	}
-	for _, n := range ns {
-		fmt.Println(n)
+
+	// Setup infected node
+	nodes[0] = NewNode("infected", NewCannedWalk(path), g)
+	for t := 0; t < iters; t++ {
+		pos := nodes[0].Locate()
+		nodes[0].Log(pos, t)
+		record[t][0] = NodeRecord{"infected", pos, true}
 	}
-	// close(quit)
+	nodes[0].MarkInfected()
+
+	// Setup and run other nodes
+	for i := 1; i < node_count; i++ {
+		nodes[i] = NewNode("node "+strconv.Itoa(i), NewRandomWalk(RandomPoint(0, 10)), g)
+		simulate(nodes[i], i, &record)
+	}
+
+	b, _ := json.Marshal(record)
+	fmt.Println(string(b))
 }

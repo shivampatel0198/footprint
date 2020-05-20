@@ -6,7 +6,8 @@ import (
 
 func TestLog(t *testing.T) {
 	g := NewGlobalTrace()
-	node := NewNode("", g)
+	walk := NewCannedWalk([]Point{Point{}})
+	node := NewNode("", walk, g)
 	locs := []Point{
 		Point{0, 0},
 		Point{0, 1},
@@ -45,7 +46,8 @@ func TestLog(t *testing.T) {
 
 func TestPush(t *testing.T) {
 	g := NewGlobalTrace()
-	node := NewNode("", g)
+	walk := NewCannedWalk([]Point{Point{}})
+	node := NewNode("", walk, g)
 
 	ps := []Point{
 		Point{0, 0},
@@ -70,9 +72,10 @@ func TestPush(t *testing.T) {
 
 func TestCheck(t *testing.T) {
 	g := NewGlobalTrace()
+	walk := NewCannedWalk([]Point{Point{}})
 
 	// Setup infected node
-	infected := NewNode("infected", g)
+	infected := NewNode("infected", walk, g)
 	xs := []Point{
 		Point{0, 0},
 		Point{0, 1},
@@ -84,10 +87,10 @@ func TestCheck(t *testing.T) {
 	for t, x := range xs {
 		infected.Log(x, t)
 	}
-	infected.Push()
+	infected.MarkInfected()
 
 	// Setup test node
-	node := NewNode("healthy", g)
+	node := NewNode("healthy", walk, g)
 	ys := []Point{
 		Point{0, 2},
 		Point{0, 2},
@@ -97,14 +100,9 @@ func TestCheck(t *testing.T) {
 	for t, y := range ys {
 		node.Log(y, t)
 	}
-
-	contacts := node.Check()
-	expected := []Interval{
-		Interval{2, 3},
-	}
-	code := Encode(Point{0, 2})
-	if !Equal(contacts[code], expected) {
-		t.Errorf("expected=%v, actual=%v", expected, contacts[code])
+	node.Check()
+	if !node.Infected {
+		t.Error("node not infected")
 	}
 }
 
