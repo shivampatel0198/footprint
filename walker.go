@@ -7,16 +7,21 @@ import (
 )
 
 type Walker interface {
-	// Returns the next location in a random walk
+	// Returns the current location in a random walk
 	Where() Point
+
+	// Moves to another location (or stays in place)
+	Walk() 
 }
 
 // Walk randomly on 2D grid
-type RandomWalk Point
+type RandomWalk struct {
+	pos Point
+}
 
 func NewRandomWalk(start Point) *RandomWalk {
 	rw := new(RandomWalk)
-	rw.set(start)
+	rw.pos = start
 	return rw
 }
 
@@ -35,13 +40,12 @@ func randomStep(p Point) Point {
 	return Point{p.X + dx, p.Y + dy}
 }
 
-func (rw *RandomWalk) set(p Point) {
-	*rw = RandomWalk(p)
+func (rw *RandomWalk) Walk() {
+	rw.pos = randomStep(rw.pos)
 }
 
 func (rw *RandomWalk) Where() Point {
-	defer rw.set(randomStep(Point(*rw)))
-	return Point(*rw)
+	return rw.pos
 }
 
 // Read in data to walk.
@@ -61,18 +65,16 @@ func NewCannedWalk(ps []Point) (cw *CannedWalk) {
 	return
 }
 
-func (cw *CannedWalk) Inc() {
+func (cw *CannedWalk) Walk() {
 	cw.index++
 }
 
 func (cw *CannedWalk) Where() Point {
-	defer cw.Inc()
-
-	i, l, x := 0, len(cw.data), cw.index
-	if x/l%2 == 0 {
-		i = x % l
+	l := len(cw.data)
+	x := cw.index % (2*l - 2)
+	if x/l == 0 {
+		return cw.data[x]
 	} else {
-		i = l - (x % l) - 1
+		return cw.data[2*(l-1)-x]
 	}
-	return cw.data[i]
 }
