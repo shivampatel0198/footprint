@@ -8,6 +8,10 @@ import matplotlib.animation as animation
 
 import numpy as np
 
+# VISUALIZATION CONSTANTS
+infected_color     = 'red'
+not_infected_color = 'black'
+
 # (0) Set up figure
 fig = plt.figure()
 
@@ -19,11 +23,11 @@ with open('data.json') as file:
 frames = []
 for timestep in range(len(data)):
 
-    # Pull coordinates from all nodes in this timestep
+    # Pull coordinates from all nodes and assign colors
     coords = np.array([
         [data[timestep][node]['Loc']['X'], 
         data[timestep][node]['Loc']['Y'], 
-        'red' if (data[timestep][node]['Infected']) else 'black']
+        infected_color if (data[timestep][node]['Infected']) else not_infected_color]
         for node in range(len(data[timestep]))
     ])
 
@@ -34,5 +38,6 @@ for timestep in range(len(data)):
 ani = animation.ArtistAnimation(fig, frames, interval=1000, blit=False,
                                 repeat=False)
 
-writer = animation.FFMpegWriter(bitrate=6000000, fps=10)
-ani.save('viz.mp4', writer=writer)
+# Play with these values (bitrate, fps, and dpi) for higher quality video
+writer = animation.FFMpegWriter(bitrate=2000, fps=8)
+ani.save('viz.mp4', writer=writer, dpi=500)
