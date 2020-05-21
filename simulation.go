@@ -69,6 +69,19 @@ type NodeRecord struct {
 	Infected bool
 }
 
+// Returns a matrix displaying how many infected people have visited each position
+func heatmap(record [][]NodeRecord) (out map[Point]int) {
+	out = make(map[Point]int)
+	for _, snapshot := range record {
+		for _, node := range snapshot {
+			if node.Infected {
+				out[node.Loc]++
+			}
+		}
+	}
+	return
+}
+
 // Translate args into ints
 func arg(i int) (out int) {
 	out, _ = strconv.Atoi(os.Args[i])
@@ -118,13 +131,13 @@ func main() {
 	}
 
 	// Filter out infected nodes
-	infected := make([]string, 0)
-	for _, n := range nodes {
-		if n.Infected {
-			infected = append(infected, n.Id)
-		}
-	}
-	fmt.Println(infected)
+	// infected := make([]string, 0)
+	// for _, n := range nodes {
+	// 	if n.Infected {
+	// 		infected = append(infected, n.Id)
+	// 	}
+	// }
+	// fmt.Println(infected)
 
 	// Write JSON
 	b, _ := json.Marshal(record)
