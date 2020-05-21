@@ -110,7 +110,8 @@ func main() {
 
 	// Write heatmap
 	for _, heatmap := range WeightedHeatmaps(record) {
-		fmt.Println(heatmap)
+		c, _ := json.Marshal(heatmap)
+		fmt.Println(string(c))
 	}
 }
 
