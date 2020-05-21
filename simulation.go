@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -140,6 +139,7 @@ func main() {
 	// fmt.Println(infected)
 
 	// Write JSON
-	b, _ := json.Marshal(record)
-	fmt.Println(string(b))
+	// b, _ := json.Marshal(record)
+	// fmt.Println(string(b))
+	fmt.Println(heatmap(record))
 }
