@@ -28,6 +28,10 @@
     const width  = 600;
     const height = 600;
 
+    const SQUARE_SIZE = 20;
+
+    const infectionColor = "red";
+
     var X_LO = Infinity, X_HI = -Infinity, Y_LO = Infinity, Y_HI = -Infinity;
 
     const dotRadius = 3;
@@ -49,6 +53,21 @@
             .attr("r", dotRadius);
     }
 
+    var squareColor = d3.scaleLinear()
+        .range(["rgba(0,0,0,0)", infectionColor])
+        .domain([0,1]);
+
+    function drawSquareAt(x, y, intensity) {
+        let newCoords = modelToViewCoordinates(x ,y);
+        console.log(newCoords[0] - (SQUARE_SIZE / 2));
+        svg.append("rect")
+            .attr("x", newCoords[0] - (SQUARE_SIZE / 2))
+            .attr("y", newCoords[1] - (SQUARE_SIZE / 2))
+            .attr("fill", squareColor(intensity))
+            .attr("width", SQUARE_SIZE)
+            .attr("height", SQUARE_SIZE);
+    }
+
     function modelToViewXDisplacement(x) {
         return (width / (X_HI - X_LO)) * x;
     }
@@ -67,17 +86,28 @@
     // (1) Fetch data
     var data = [
         [
-            {"Loc": {"X" : 10, "Y": 10} },
-            {"Loc": {"X" : 8, "Y": 8} },
-            {"Loc": {"X" : 6, "Y": 6} },
-            {"Loc": {"X" : 4, "Y": 4} },
-            {"Loc": {"X" : 2, "Y": 2} },
-            {"Loc": {"X" : 0, "Y": 0} },
-            {"Loc": {"X" : -2, "Y": -2} },
-            {"Loc": {"X" : -4, "Y": -4} },
-            {"Loc": {"X" : -6, "Y": -6} },
-            {"Loc": {"X" : -8, "Y": -8} }, 
-            {"Loc": {"X" : -10, "Y": -10} },
+            {"X": 1, "Y": 1, "Weight": 0.5},
+            {"X": 1, "Y": -1, "Weight": 0.5},
+            {"X": -1, "Y": 1, "Weight": 0.5},
+            {"X": -1, "Y": -1, "Weight": 0.5},
+        ],
+        [
+            {"X": 1, "Y": 1, "Weight": 0.15},
+            {"X": 1, "Y": -1, "Weight": 0.35},
+            {"X": 1, "Y": 1, "Weight": 0.05},
+            {"X": -1, "Y": -1, "Weight": 0.55},
+        ],
+        [
+            {"X": 1, "Y": 1, "Weight": 0.35},
+            {"X": 1, "Y": -1, "Weight": 0.15},
+            {"X": 1, "Y": 1, "Weight": 0.75},
+            {"X": -1, "Y": -1, "Weight": 0.05},
+        ],
+        [
+            {"X": 1, "Y": 1, "Weight": 1},
+            {"X": 1, "Y": -1, "Weight": 0.3},
+            {"X": 1, "Y": 1, "Weight": 0.2},
+            {"X": -1, "Y": -1, "Weight": 0.4},
         ]
     ];
 
@@ -88,19 +118,19 @@
     function scaleAxes() {
         
         // Find grid bounds
-        for(var i = 0; i < data.length; i++) {
-            
+        for(const timestep of data) {
+
             var smallest = Infinity, highest = -Infinity;
             
-            for(var j = 0; j < data[i].length; j++) {
-                if (data[i][j].Loc.X < smallest) smallest = data[i][j].Loc.X;
-                if (data[i][j].Loc.X > highest) highest = data[i][j].Loc.X;
-                if (data[i][j].Loc.Y < smallest) smallest = data[i][j].Loc.Y;
-                if (data[i][j].Loc.Y > highest) highest = data[i][j].Loc.Y;
+            for(const square of timestep) {
+                if (square.X < smallest) smallest = square.X;
+                if (square.X > highest) highest = square.X;
+                if (square.Y < smallest) smallest = square.Y;
+                if (square.Y > highest) highest = square.Y;
             }
 
-            X_LO = Y_LO = smallest;
-            X_HI = Y_HI = highest;
+            X_LO = Y_LO = smallest - 1;
+            X_HI = Y_HI = highest + 1;
         }
 
         // Make linear scales
@@ -151,9 +181,23 @@
 
         // Start by drawing the initial nodes
         const currentTimestep = data[0];
-        for (const node of currentTimestep) {
-            console.log(node);
-            drawNodeAt(node.Loc.X, node.Loc.Y);
+        for(const heatmap of currentTimestep) {
+            drawSquareAt(heatmap.X, heatmap.Y, 0);
+        }
+        
+        // Start the animation after 250ms
+        var animation = svg.selectAll('rect').transition()
+            .duration(250);
+
+        // Now draw boxes on each of the coord grids
+        for (const heatmap of data) {
+            animation = animation.transition()
+                .ease(d3.easeLinear)
+                .delay(250)
+                .duration(1000)
+                .attr('fill', function(d, index) {
+                    return squareColor(heatmap[index].Weight)
+                });
         }
     }
 

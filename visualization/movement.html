@@ -167,21 +167,21 @@
         for (let i = 0; i < data.length; i++) {
             animation = animation.transition()
                 .ease(d3.easeLinear)
-                    .delay(250)
-                    .duration(1000)
-                    .attr('cx', function(d, index) {
-                        xOffset = data[i][index].Offset;
-                        return modelToViewXDisplacement(xOffset.X);
-                    })
-                    .attr('cy', function(d, index) {
-                        yOffset = data[i][index].Offset;
-                        return modelToViewYDisplacement(yOffset.Y);
-                    })
-                    .attr('fill', function(d, index) {
-                        isInfected = data[i][index].Infected;
-                        if(isInfected) return infected
-                        else return healthy;
-                    })
+                .delay(250)
+                .duration(1000)
+                .attr('cx', function(d, index) {
+                    xOffset = data[i][index].Offset;
+                    return modelToViewXDisplacement(xOffset.X);
+                })
+                .attr('cy', function(d, index) {
+                    yOffset = data[i][index].Offset;
+                    return modelToViewYDisplacement(yOffset.Y);
+                })
+                .attr('fill', function(d, index) {
+                    isInfected = data[i][index].Infected;
+                    if(isInfected) return infected
+                    else return healthy;
+                })
         }
 
     }
