@@ -81,7 +81,7 @@ Determine contact events with infected individuals.
 Looks at bulletin, looks at n's logged activity, and finds all of the intersections.
 Using those intersections, determine whether n is now infected/at risk.  
 */
-func (n *Node) Check(f func(overlaps map[PointCode][]Interval) bool) {
+func (n *Node) Check(f func(map[PointCode][]Interval) bool) {
 	// Ignore already infected nodes
 	if n.Infected {
 		return

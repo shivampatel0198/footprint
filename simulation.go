@@ -13,37 +13,59 @@ var (
 	iters       int
 )
 
-func simulate(n *Node, i int, record *[][]NodeRecord) {
-	for t := 0; t < iters; t++ {
-		n.Walk()
-		pos := n.Locate()
-		n.Log(pos, t)
-		if n.Infected {
-			n.Push()
-		} else {
-			n.Check(func(overlaps map[PointCode][]Interval) bool {
-				count := 0
-				for _, intervals := range overlaps {
-					for _, interval := range intervals {
-						count += interval.Size()
-					}
-				} 
-				return count > 1
-			})
+/* Transmission Heuristic functions */
 
-			// // Simple infection model: one-touch transmission
-			// n.Check(func(overlaps map[PointCode][]Interval) bool {
-			// 	return len(overlaps) > 0
-			// })
+// Returns a threshold-checking function parametrized by k
+func threshold(k int) func(map[PointCode][]Interval) bool {
+	return func(overlaps map[PointCode][]Interval) bool {
+		count := 0
+		for _, intervals := range overlaps {
+			for _, interval := range intervals {
+				count += interval.Size()
+			}
 		}
-		r := NodeRecord{n.Id, pos, n.Infected}
-		(*record)[t][i] = r
+		return count > k
 	}
+}
+
+// Simple infection model: one-touch transmission
+func one_touch() func(map[PointCode][]Interval) bool {
+	return func(overlaps map[PointCode][]Interval) bool {
+		return len(overlaps) > 0
+	}
+}
+
+// Simulate one time step
+func simulate(t Time, i int, n *Node, record *[][]NodeRecord) {
+
+	// Move and log location
+	p := n.Locate()
+	n.Log(p, t)
+	n.Walk()
+
+	// Push/Check
+	if n.Infected {
+		n.Push()
+	} else {
+		n.Check(one_touch())
+	}
+
+	// Compute offset
+	var offset Point
+	if t == 0 {
+		offset = Point{0, 0}
+	} else {
+		q := (*record)[t-1][i].Loc // previous pos
+		offset = p.Sub(q)
+	}
+
+	(*record)[t][i] = NodeRecord{n.Id, p, offset, n.Infected}
 }
 
 type NodeRecord struct {
 	NodeID   string
 	Loc      Point
+	Offset   Point
 	Infected bool
 }
 
@@ -74,15 +96,25 @@ func main() {
 	// Setup nodes
 	nodes := make([]*Node, node_count)
 	g := NewGlobalTrace()
-	nodes[0] = NewNode("infected", NewSegmentedWalk(RandomPoint(0, node_spread)), g)
+	nodes[0] = NewNode(
+		"infected",
+		NewSegmentedWalk(RandomPoint(0, node_spread)),
+		g,
+	)
 	nodes[0].MarkInfected()
 	for i := 1; i < node_count; i++ {
-		nodes[i] = NewNode("node "+strconv.Itoa(i), NewSegmentedWalk(RandomPoint(0, node_spread)), g)
+		nodes[i] = NewNode(
+			"node "+strconv.Itoa(i),
+			NewSegmentedWalk(RandomPoint(0, node_spread)),
+			g,
+		)
 	}
 
 	// Simulate nodes
-	for i, n := range nodes {
-		simulate(n, i, &record)
+	for t := 0; t < iters; t++ {
+		for i, n := range nodes {
+			simulate(t, i, n, &record)
+		}
 	}
 
 	// Filter out infected nodes
@@ -93,7 +125,7 @@ func main() {
 		}
 	}
 	fmt.Println(infected)
-	
+
 	// Write JSON
 	b, _ := json.Marshal(record)
 	fmt.Println(string(b))
