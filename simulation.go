@@ -109,10 +109,12 @@ func main() {
 	fmt.Println(infected)
 
 	// Write heatmap
-	for _, heatmap := range WeightedHeatmaps(record) {
-		c, _ := json.Marshal(heatmap)
-		fmt.Println(string(c))
-	}
+	// for _, heatmap := range WeightedHeatmaps(record) {
+	// 	c, _ := json.Marshal(heatmap)
+	// 	fmt.Println(string(c))
+	// }
+	c, _ := json.Marshal(WeightedHeatmaps(record))
+	fmt.Println(string(c))
 }
 
 /* Transmission Heuristic functions */
