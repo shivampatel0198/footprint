@@ -32,9 +32,6 @@
 
     const dotRadius = 3;
 
-    const infected = "red";
-    const healthy  = "black";
-
     // HTML CONSTANTS
     parentNode = d3.select('body');
 
@@ -44,22 +41,12 @@
         .attr("height", height);
     
     // Draws an infected node
-    function drawInfectedNodeAt(x, y) {
+    function drawNodeAt(x, y) {
         let newCoords = modelToViewCoordinates(x,y);
         svg.append("circle")
-            .attr("fill", infected)
+            .attr("fill", "black")
             .attr("transform", `translate(${newCoords[0]} ${newCoords[1]})`)
             .attr("r", dotRadius);
-    }
-
-    // Draws a healthy node
-    function drawHealthyNodeAt(x, y) {
-        let newCoords = modelToViewCoordinates(x,y);
-        svg.append("circle")
-            .attr("fill", healthy)
-            .attr("transform", `translate(${newCoords[0]} ${newCoords[1]})`)
-            .attr("r", dotRadius)
-            .attr("z-index", -1);
     }
 
     function modelToViewXDisplacement(x) {
@@ -78,15 +65,25 @@
     }
 
     // (1) Fetch data
-    var data;
-    d3.json("https://raw.githubusercontent.com/shivampatel0198/footprint/master/visualization/data.json?token=AGGSD6YLROCSWCHUW252QIC6Z4LN4")
-        .then(function(json) {
-            data = json;
-            scaleAxes();
-            visualize();
-        });
+    var data = [
+        [
+            {"Loc": {"X" : 10, "Y": 10} },
+            {"Loc": {"X" : 8, "Y": 8} },
+            {"Loc": {"X" : 6, "Y": 6} },
+            {"Loc": {"X" : 4, "Y": 4} },
+            {"Loc": {"X" : 2, "Y": 2} },
+            {"Loc": {"X" : 0, "Y": 0} },
+            {"Loc": {"X" : -2, "Y": -2} },
+            {"Loc": {"X" : -4, "Y": -4} },
+            {"Loc": {"X" : -6, "Y": -6} },
+            {"Loc": {"X" : -8, "Y": -8} }, 
+            {"Loc": {"X" : -10, "Y": -10} },
+        ]
+    ];
 
-    // (2) Scale the axes
+    scaleAxes();
+    visualize();
+
     // (2) Scale the axes
     function scaleAxes() {
         
@@ -155,35 +152,9 @@
         // Start by drawing the initial nodes
         const currentTimestep = data[0];
         for (const node of currentTimestep) {
-            if (node.Infected) drawInfectedNodeAt(node.Loc.X, node.Loc.Y)
-            else drawHealthyNodeAt(node.Loc.X, node.Loc.Y);
+            console.log(node);
+            drawNodeAt(node.Loc.X, node.Loc.Y);
         }
-
-        // Start the animation after 250ms
-        var animation = svg.selectAll('circle').transition()
-            .duration(250);
-
-        // For each time step, update the animation frame accordingly
-        for (let i = 0; i < data.length; i++) {
-            animation = animation.transition()
-                .ease(d3.easeLinear)
-                    .delay(250)
-                    .duration(1000)
-                    .attr('cx', function(d, index) {
-                        xOffset = data[i][index].Offset;
-                        return modelToViewXDisplacement(xOffset.X);
-                    })
-                    .attr('cy', function(d, index) {
-                        yOffset = data[i][index].Offset;
-                        return modelToViewYDisplacement(yOffset.Y);
-                    })
-                    .attr('fill', function(d, index) {
-                        isInfected = data[i][index].Infected;
-                        if(isInfected) return infected
-                        else return healthy;
-                    })
-        }
-
     }
 
 </script>
