@@ -109,7 +109,7 @@ func main() {
 	fmt.Println(infected)
 
 	// Write heatmap
-	for _, heatmap := range CumulativeHeatmaps(record) {
+	for _, heatmap := range WeightedHeatmaps(record) {
 		fmt.Println(heatmap)
 	}
 }
