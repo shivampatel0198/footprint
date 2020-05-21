@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -12,26 +13,11 @@ var (
 	iters       int
 )
 
-/* Transmission Heuristic functions */
-
-// Returns a threshold-checking function parametrized by k
-func threshold(k int) func(map[PointCode][]Interval) bool {
-	return func(overlaps map[PointCode][]Interval) bool {
-		count := 0
-		for _, intervals := range overlaps {
-			for _, interval := range intervals {
-				count += interval.Size()
-			}
-		}
-		return count > k
-	}
-}
-
-// Simple infection model: one-touch transmission
-func one_touch() func(map[PointCode][]Interval) bool {
-	return func(overlaps map[PointCode][]Interval) bool {
-		return len(overlaps) > 0
-	}
+type NodeRecord struct {
+	NodeID   string
+	Loc      Point
+	Offset   Point
+	Infected bool
 }
 
 // Simulate one time step
@@ -59,26 +45,6 @@ func simulate(t Time, i int, n *Node, record *[][]NodeRecord) {
 	}
 
 	(*record)[t][i] = NodeRecord{n.Id, p, offset, n.Infected}
-}
-
-type NodeRecord struct {
-	NodeID   string
-	Loc      Point
-	Offset   Point
-	Infected bool
-}
-
-// Returns a matrix displaying how many infected people have visited each position
-func heatmap(record [][]NodeRecord) (out map[Point]int) {
-	out = make(map[Point]int)
-	for _, snapshot := range record {
-		for _, node := range snapshot {
-			if node.Infected {
-				out[node.Loc]++
-			}
-		}
-	}
-	return
 }
 
 // Translate args into ints
@@ -129,17 +95,43 @@ func main() {
 		}
 	}
 
-	// Filter out infected nodes
-	// infected := make([]string, 0)
-	// for _, n := range nodes {
-	// 	if n.Infected {
-	// 		infected = append(infected, n.Id)
-	// 	}
-	// }
-	// fmt.Println(infected)
-
 	// Write JSON
-	// b, _ := json.Marshal(record)
-	// fmt.Println(string(b))
-	fmt.Println(heatmap(record))
+	b, _ := json.Marshal(record)
+	fmt.Println(string(b))
+
+	// Filter out infected nodes
+	infected := make([]string, 0)
+	for _, n := range nodes {
+		if n.Infected {
+			infected = append(infected, n.Id)
+		}
+	}
+	fmt.Println(infected)
+
+	// Write heatmap
+	for _, heatmap := range CumulativeHeatmaps(record) {
+		fmt.Println(heatmap)
+	}
+}
+
+/* Transmission Heuristic functions */
+
+// Returns a threshold-checking function parametrized by k
+func threshold(k int) func(map[PointCode][]Interval) bool {
+	return func(overlaps map[PointCode][]Interval) bool {
+		count := 0
+		for _, intervals := range overlaps {
+			for _, interval := range intervals {
+				count += interval.Size()
+			}
+		}
+		return count > k
+	}
+}
+
+// Simple infection model: one-touch transmission
+func one_touch() func(map[PointCode][]Interval) bool {
+	return func(overlaps map[PointCode][]Interval) bool {
+		return len(overlaps) > 0
+	}
 }
