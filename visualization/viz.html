@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v5.min.js"></script>
+
+<!-- Add styles -->
+<style>
+    html, body {
+        background-color: white;
+        width: 100%;
+        height: auto;
+    }
+
+    svg {
+        border: 1px solid black;
+    }
+</style>
+
+
+<!-- Draw the webpage -->
+<body></body>
+
+<!-- Define visualization in D3 -->
+<script> 
+
+    // DESIGN CONSTANTS
+    const width  = 960;
+    const height = 600;
+
+    const X_LO = -10;
+    const X_HI = 10;
+    
+    const Y_LO = -10;
+    const Y_HI = 10;
+
+    const dotRadius = 3;
+
+    const infected = "red";
+    const healthy  = "black";
+
+    // HTML CONSTANTS
+    parentNode = d3.select('body');
+
+    // The SVG element in the DOM. This is our chart
+    const svg = parentNode.append("svg")
+        .attr("width", width)
+        .attr("height", height);
+    
+    // Draws an infected node
+    function drawInfectedNodeAt(x, y) {
+        let newCoords = modelToViewCoordinates(x,y);
+        svg.append("circle")
+            .attr("fill", infected)
+            .attr("transform", `translate(${newCoords[0]} ${newCoords[1]})`)
+            .attr("r", dotRadius);
+    }
+
+    // Draws a healthy node
+    function drawHealthyNodeAt(x, y) {
+        let newCoords = modelToViewCoordinates(x,y);
+        svg.append("circle")
+            .attr("fill", healthy)
+            .attr("transform", `translate(${newCoords[0]} ${newCoords[1]})`)
+            .attr("r", dotRadius)
+            .attr("z-index", -1);
+    }
+
+    function modelToViewXDisplacement(x) {
+        return (width / (X_HI - X_LO)) * x;
+    }
+
+    function modelToViewYDisplacement(y) {
+        return (height / (Y_LO - Y_HI)) * y;
+    }
+
+    // Converts coordinates
+    function modelToViewCoordinates(x, y) {
+        let new_x = (width / (X_HI - X_LO)) * x + (width / 2);
+        let new_y = (height / (Y_LO - Y_HI)) * y + (height / 2);
+        return [new_x, new_y];
+    }
+
+    // (1) Fetch data
+    var data;
+    d3.json("https://raw.githubusercontent.com/shivampatel0198/footprint/master/visualization/data.json?token=AGGSD62AHYTCMAMXJGHE5YC6Z3GS6")
+        .then(function(json) {
+            data = json;
+            scaleAxes();
+            visualize();
+        });
+
+    // (2) Scale the axes
+    function scaleAxes() {
+        
+        // Make linear scales
+        var x = d3.scaleLinear().domain([X_LO, X_HI]).range([0, width]);
+        var y = d3.scaleLinear().domain([Y_HI, Y_LO]).range([0, height]);
+        
+        // Construct axes
+        var xAxis = d3.axisBottom().scale(x);
+        var yAxis = d3.axisLeft().scale(y);
+
+        // Draw axes
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", `translate(0 ${height / 2})`)
+            .call(xAxis);
+        
+        svg.append("g")
+            .attr("class", "y axis")
+            .attr("transform", `translate(${width / 2})`)
+            .call(yAxis);
+
+    }
+
+    // (3) Build the visuals
+    function visualize() {
+
+        // Start by drawing the initial nodes
+        const currentTimestep = data[0];
+        for (const node of currentTimestep) {
+            if (node.Infected) drawInfectedNodeAt(node.Loc.X, node.Loc.Y)
+            else drawHealthyNodeAt(node.Loc.X, node.Loc.Y);
+        }
+
+        var dots = svg.selectAll('circle');
+        console.log(dots);
+
+        dots.transition()
+            .duration(4000)
+            .attr('cx', modelToViewXDisplacement(1))
+            .attr('cy', modelToViewYDisplacement(1));
+
+    }
+
+</script>
