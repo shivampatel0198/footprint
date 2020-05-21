@@ -82,7 +82,7 @@
 
     // (1) Fetch data
     var data;
-    d3.json("https://raw.githubusercontent.com/shivampatel0198/footprint/master/visualization/data.json?token=AGGSD62AHYTCMAMXJGHE5YC6Z3GS6")
+    d3.json("https://raw.githubusercontent.com/shivampatel0198/footprint/master/visualization/data.json?token=AGGSD6YLROCSWCHUW252QIC6Z4LN4")
         .then(function(json) {
             data = json;
             scaleAxes();
@@ -123,13 +123,29 @@
             else drawHealthyNodeAt(node.Loc.X, node.Loc.Y);
         }
 
-        var dots = svg.selectAll('circle');
-        console.log(dots);
+        repeat(0);
 
-        dots.transition()
-            .duration(4000)
-            .attr('cx', modelToViewXDisplacement(1))
-            .attr('cy', modelToViewYDisplacement(1));
+        function repeat(i) {
+            if (i >= data.length) return;
+            svg.selectAll('circle').transition()
+                .ease(d3.easeLinear)
+                .delay(250)
+                .duration(3000)
+                .attr('cx', function(d, index) {
+                    xOffset = data[i][index].Loc.X;
+                    return modelToViewXDisplacement(xOffset);
+                })
+                .attr('cy', function(d, index) {
+                    yOffset = data[i][index].Loc.Y;
+                    return modelToViewXDisplacement(yOffset);
+                })
+                .attr('fill', function(d, index) {
+                    isInfected = data[i][index].Infected;
+                    if(isInfected) return infected
+                    else return healthy;
+                })
+                .on('end', repeat(i + 1));
+        }
 
     }
 
