@@ -101,15 +101,15 @@
         var yAxis = d3.axisLeft().scale(y);
 
         // Draw axes
-        svg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", `translate(0 ${height / 2})`)
-            .call(xAxis);
+        // svg.append("g")
+        //     .attr("class", "x axis")
+        //     .attr("transform", `translate(0 ${height / 2})`)
+        //     .call(xAxis);
         
-        svg.append("g")
-            .attr("class", "y axis")
-            .attr("transform", `translate(${width / 2})`)
-            .call(yAxis);
+        // svg.append("g")
+        //     .attr("class", "y axis")
+        //     .attr("transform", `translate(${width / 2})`)
+        //     .call(yAxis);
 
     }
 
@@ -123,28 +123,29 @@
             else drawHealthyNodeAt(node.Loc.X, node.Loc.Y);
         }
 
-        repeat(0);
+        // Start the animation after 250ms
+        var animation = svg.selectAll('circle').transition()
+            .duration(250);
 
-        function repeat(i) {
-            if (i >= data.length) return;
-            svg.selectAll('circle').transition()
+        // For each time step, update the animation frame accordingly
+        for (let i = 0; i < data.length; i++) {
+            animation = animation.transition()
                 .ease(d3.easeLinear)
-                .delay(250)
-                .duration(3000)
-                .attr('cx', function(d, index) {
-                    xOffset = data[i][index].Loc.X;
-                    return modelToViewXDisplacement(xOffset);
-                })
-                .attr('cy', function(d, index) {
-                    yOffset = data[i][index].Loc.Y;
-                    return modelToViewXDisplacement(yOffset);
-                })
-                .attr('fill', function(d, index) {
-                    isInfected = data[i][index].Infected;
-                    if(isInfected) return infected
-                    else return healthy;
-                })
-                .on('end', repeat(i + 1));
+                    .delay(250)
+                    .duration(1000)
+                    .attr('cx', function(d, index) {
+                        xOffset = data[i][index].Offset;
+                        return modelToViewXDisplacement(xOffset.X);
+                    })
+                    .attr('cy', function(d, index) {
+                        yOffset = data[i][index].Offset;
+                        return modelToViewYDisplacement(yOffset.Y);
+                    })
+                    .attr('fill', function(d, index) {
+                        isInfected = data[i][index].Infected;
+                        if(isInfected) return infected
+                        else return healthy;
+                    })
         }
 
     }
